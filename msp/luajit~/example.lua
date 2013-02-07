@@ -1,25 +1,17 @@
-print("hello mofos")
+local max = require "max"
 
-local ffi = require "ffi"
-local C = ffi.C
+print(string.rep("_", 50))
 
-ffi.cdef [[
-typedef unsigned int GLenum;
-typedef float GLfloat;
-enum {
- GL_QUADS                          = 0x0007
-};
-void glBegin (GLenum mode);
-void glEnd();
-void glVertex3f(GLfloat x, GLfloat y, GLfloat z);
-]]
+local gl = require "gl"
+local GL = gl
 
 function draw()
-	print("draw")
-	C.glBegin(C.GL_QUADS);
-	C.glVertex3f(-1,-1,0);
-	C.glVertex3f(-1,1,0);
-	C.glVertex3f(1,1,0);
-	C.glVertex3f(1,-1,0);
-	C.glEnd();
+	gl.Begin(GL.QUADS)
+	gl.Color(math.random(), math.random(), math.random())
+	gl.Vertex(-1,-1,0)
+	gl.Vertex(-1,1,0)
+	gl.Vertex(1,1,0)
+	gl.Vertex(1,-1,0)
+	gl.End()
 end
+

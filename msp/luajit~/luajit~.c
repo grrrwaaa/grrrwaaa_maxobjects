@@ -16,8 +16,13 @@ typedef struct {
     t_pxobject	x_obj;
 	void *		ob3d;
 	
+	void *		lua_outlet;
+	
 	lua_State * L;
 	t_symbol * filename;
+	short filepath;
+	void * filewatcher;
+	long autowatch;
 	
 } t_luajit;
 
@@ -37,9 +42,11 @@ void luajit_perform64_method(t_luajit *x, t_object *dsp64, double **ins, long nu
 
 t_max_err luajit_filename_set(t_luajit *x, t_object *attr, long argc, t_atom *argv);
 void luajit_doread(t_luajit *x);
+void luajit_filechanged(t_luajit *x, char *filename, short path);
 lua_State * luajit_newstate(t_luajit *x);
 void luajit_dostring(t_luajit *x, C74_CONST char * text);
 t_max_err luajit_notify(t_luajit *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
+
 
 int C74_EXPORT main(void)
 {
@@ -53,12 +60,18 @@ int C74_EXPORT main(void)
 	class_addmethod(maxclass, (method)luajit_dsp64, "dsp64", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_notify, "notify", A_CANT, 0);
+	class_addmethod(maxclass, (method)luajit_filechanged, "filechanged", A_CANT, 0);
 	//class_setname("*~","luajit~"); // because the filename on disk is different from the object name in Max
 	
 	CLASS_ATTR_SYM(maxclass, "file", 0, t_luajit, filename);
 	CLASS_ATTR_LABEL(maxclass,	"file",	0,	"Lua script file name to load");
-	CLASS_ATTR_CATEGORY(maxclass, "file", 0, "Value");
 	CLASS_ATTR_ACCESSORS(maxclass, "file", 0, luajit_filename_set);
+	
+	CLASS_ATTR_LONG(maxclass, "autowatch", 0, t_luajit, autowatch); 
+	CLASS_ATTR_LABEL(maxclass,	"autowatch",	0,	"automatically reload file when changed on disk");
+	
+	CLASS_ATTR_OBJ(maxclass, "lua_outlet", 0, t_luajit, lua_outlet);
+	CLASS_ATTR_INVISIBLE(maxclass, "lua_outlet", 0);
 	
 	class_dspinit(maxclass);
 
@@ -81,8 +94,7 @@ int C74_EXPORT main(void)
 	// resources your object keeps in the OpenGL machine 
 	// (e.g. textures, display lists, vertex shaders, etc.) 
 	// will need to be freed when closing, and rebuilt when it has 
-	// changed. In this object, these functions do nothing, and 
-	// could be omitted.
+	// changed. 
 	jit_class_addmethod(maxclass, (method)luajit_dest_closing, "dest_closing", A_CANT, 0L);
 	jit_class_addmethod(maxclass, (method)luajit_dest_changed, "dest_changed", A_CANT, 0L);
 
@@ -106,6 +118,9 @@ t_jit_err luajit_draw(t_luajit *x) {
 		object_error((t_object *)x, lua_tostring(x->L, -1));
 	}
 	
+	// clear debug.traceback:
+	lua_settop(x->L, 0);
+	
 	return result;
 }
 
@@ -119,16 +134,19 @@ t_jit_err luajit_dest_changed(t_luajit *x) {
 t_max_err luajit_filename_set(t_luajit *x, t_object *attr, long argc, t_atom *argv)
 {
 	x->filename = atom_getsym(argv);
-	
-	// find the file, dofile it.
-	
 	defer(x, (method)luajit_doread, 0, 0, 0);
-	
 	return 0;
 }
 
+void luajit_filechanged(t_luajit *x, char *filename, short path) {
+	object_post((t_object *)x, "file changed, reloading: %s", filename);
+	if (x->autowatch) {
+		defer(x, (method)luajit_doread, 0, 0, 0);
+	}
+}
+
 void luajit_doread(t_luajit *x) {
-	char filename[512];
+	char filename[MAX_PATH_CHARS];
 	short path;
 	t_fourcc filetype = 'TEXT';
 	t_fourcc outtype;
@@ -147,33 +165,70 @@ void luajit_doread(t_luajit *x) {
 		object_error((t_object *)x, "error opening %s", filename);
 		return;
 	}
+	
+	// store new path:
+	x->filepath = path;
+		
 	// allocate some empty memory to receive text
 	texthandle = sysmem_newhandle(0);
-	sysfile_readtextfile(fh, texthandle, 0, TEXT_NULL_TERMINATE);     // see flags explanation below
-	//post("read %ld characters", sysmem_handlesize(texthandle));
-	sysfile_close(fh);
+	if (sysfile_readtextfile(fh, texthandle, 0, TEXT_NULL_TERMINATE)) {
+		object_error((t_object *)x, "failed to read %s", x->filename->s_name);
+	} else {
 	
-	// now run it:
-	if (luajit_newstate(x)) {
-		luajit_dostring(x, *texthandle);
+		// now run it:
+		if (luajit_newstate(x)) {
+		
+			// start filewatching:
+			if (x->filewatcher) {
+				filewatcher_stop(x->filewatcher);
+				object_free(x->filewatcher);
+			}
+			x->filewatcher = filewatcher_new((t_object *)x, x->filepath, x->filename->s_name);
+			filewatcher_start(x->filewatcher);	
+		
+			luajit_dostring(x, *texthandle);
+		}
+		
 	}
-	
+	sysfile_close(fh);
 	sysmem_freehandle(texthandle);
 }
 
 lua_State * luajit_newstate(t_luajit *x) {
 	lua_State * L;
+	char local_path[MAX_PATH_CHARS];
 	
 	L = lua_open();
 	if (L == 0) {
 		object_error((t_object *)x, "failed to allocate Lua");
 	} else {
-		// initialize:
+		// initialize L:
 		luaL_openlibs(L);
 		
+		// cache debug.traceback:
 		lua_getglobal(L, "debug");
 		lua_getfield(L, -1, "traceback");
 		lua_setfield(L, LUA_REGISTRYINDEX, "debug.traceback");
+		
+		// add the local path to the package path:
+		if (path_toabsolutesystempath(x->filepath, "", local_path)) {
+			object_warn((t_object *)x, "problem resolving package path");
+		} else {	
+			if (luaL_loadstring(L, "local path = ...; package.path = string.format('%s/?.lua;%s/?/init.lua;%s', path, path, package.path)")) {
+				object_error((t_object *)x, lua_tostring(L, -1));
+			} else {
+				lua_pushstring(L, local_path);
+				if (lua_pcall(L, 1, LUA_MULTRET, 0)) {
+					object_error((t_object *)x, lua_tostring(L, -1));
+				}
+			}
+		}	
+		
+		// TODO: push x as 'this'?
+		lua_pushlightuserdata(L, x);
+		lua_setglobal(L, "this");
+		
+		// leave it nice:
 		lua_settop(L, 0);
 		
 		// swap states:
@@ -196,66 +251,16 @@ t_max_err luajit_notify(t_luajit *x, t_symbol *s, t_symbol *msg, void *sender, v
 	if (msg == gensym("attr_modified")) {       // check notification type
 		attrname = (t_symbol *)object_method((t_object *)data, gensym("getname"));
 		object_post((t_object *)x, "changed attr name is %s",attrname->s_name);
+	} else {
+		object_post((t_object *)x, "notify %s (self %d)", msg->s_name, sender == x);
 	}
+
 	return 0;
 }
 
-void luajit_dsp64(t_luajit *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
-{
-	if (!count[1]) {
-		dsp_add64(dsp64, (t_object*) x, (t_perfroutine64) scale_perform64_method, 0, 0); 
-	}
-	else if (!count[0]) {
-		dsp_add64(dsp64, (t_object*) x, (t_perfroutine64) scale_perform64_method, 0, (void*) 1); 
-	}
-	else {
-		dsp_add64(dsp64, (t_object*) x, (t_perfroutine64) luajit_perform64_method, 0, 0);
-	}
+void luajit_dsp64(t_luajit *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags) {
+	dsp_add64(dsp64, (t_object*) x, (t_perfroutine64) luajit_perform64_method, 0, 0);
 }
-
-
-void scale_perform64_method(t_luajit *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
-{
-//	int invec = (int) userparam;   // used to signal which one is the signal input (1 for right, 0 for left)
-//	t_double *in = ins[invec];
-//	t_double *out = outs[0];
-	//t_double val = x->x_val;
-//#if defined(WIN_VERSION) && defined(WIN_SSE_INTRINSICS)
-//	__m128d mm_in1;
-//	__m128d *mm_out1 = (__m128d*) out; 
-//	__m128d mm_in2;
-//	__m128d *mm_out2 = (__m128d*) out; 
-//	__m128d mm_val;
-//	__declspec(align(16)) t_double aligned_val = x->x_val;
-//	int i;
-//
-//	mm_val = _mm_set1_pd(aligned_val);
-//
-//	// rbs fix: this version will break if the SVS is smaller than 4
-//	C74_ASSERT(sampleframes >= 4);
-//	for (i=0; i < sampleframes; i+=4) {
-//		mm_in1 = _mm_load_pd(in+i); 
-//		mm_out1[i/2] = _mm_mul_pd(mm_in1, mm_val); 
-//		mm_in2 = _mm_load_pd(in+i+2); 
-//		mm_out2[i/2 + 1] = _mm_mul_pd(mm_in2, mm_val); 
-//	}
-//
-//#else
-//	t_double ftmp;
-//
-////	if (IS_DENORM_DOUBLE(*in)) {
-////		static int counter = 0; 
-////		post("luajit~ (%p): saw denorm (%d)", x, counter++); 
-////	}
-//
-//	while (sampleframes--) {
-//		ftmp = val * *in++;
-//		FIX_DENORM_NAN_DOUBLE(ftmp);
-//		*out++ = ftmp;
-//	}
-//#endif
-}
-
 
 void luajit_perform64_method(t_luajit *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
@@ -298,8 +303,11 @@ void *luajit_new(t_symbol *s, long argc, t_atom *argv) {
 	t_symbol *dest_name_sym = _jit_sym_nothing;
 	t_luajit *x = (t_luajit*) object_alloc((t_class*) luajit_class);
 	if (x) {
+	
 		// add a general purpose outlet (rightmost)
 		//max_jit_obex_dumpout_set(x, outlet_new(x,NULL));
+		
+		x->lua_outlet = outlet_new(x, 0);
 		
 		// get first normal arg, the destination name
 		attrstart = max_jit_attr_args_offset(argc,argv);
@@ -313,6 +321,8 @@ void *luajit_new(t_symbol *s, long argc, t_atom *argv) {
 		outlet_new((t_pxobject *)x, "signal");
 		
 		x->filename = _sym_none;
+		x->filepath = 0;
+		x->autowatch = 1;
 		
 		if (luajit_newstate(x) == 0) {
 			luajit_free(x);
@@ -335,3 +345,6 @@ void luajit_free(t_luajit * x)
 	jit_ob3d_free(x);
 	max_jit_object_free(x);
 }
+
+
+
