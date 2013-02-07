@@ -12,7 +12,6 @@
 		22CF116E0EE9A7700054F513 /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22CF116D0EE9A7700054F513 /* MaxAudioAPI.framework */; };
 		36565D8C16C2888600A5AF5E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36565D8B16C2888600A5AF5E /* OpenGL.framework */; };
 		36565D9616C288A500A5AF5E /* JitterAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36565D9516C288A500A5AF5E /* JitterAPI.framework */; };
-		36565F5316C332BA00A5AF5E /* gl.lua in Sources */ = {isa = PBXBuildFile; fileRef = 36565F5216C332BA00A5AF5E /* gl.lua */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,15 +67,15 @@
 		089C166AFE841209C02AAC07 /* iterator */ = {
 			isa = PBXGroup;
 			children = (
-				36565C8516C21FDF00A5AF5E /* build.sh */,
 				36565D1F16C2841700A5AF5E /* example.lua */,
 				3656603C16C33E5100A5AF5E /* max.lua */,
 				36565F5216C332BA00A5AF5E /* gl.lua */,
-				36C1D56916C209C2001E992B /* luajit_osx */,
+				36565C8516C21FDF00A5AF5E /* build.sh */,
 				22CF10220EE984600054F513 /* maxmspsdk.xcconfig */,
 				22922AD20F38D67900B1EFEA /* commonsyms.c */,
 				22CF115D0EE9A6F40054F513 /* luajit~.c */,
 				19C28FB4FE9D528D11CA2CBB /* Products */,
+				36C1D56916C209C2001E992B /* luajit_osx */,
 				22CF116D0EE9A7700054F513 /* MaxAudioAPI.framework */,
 				36565D8B16C2888600A5AF5E /* OpenGL.framework */,
 				36565D9516C288A500A5AF5E /* JitterAPI.framework */,
@@ -317,7 +316,6 @@
 			files = (
 				22CF115E0EE9A6F40054F513 /* luajit~.c in Sources */,
 				22922AD30F38D67900B1EFEA /* commonsyms.c in Sources */,
-				36565F5316C332BA00A5AF5E /* gl.lua in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

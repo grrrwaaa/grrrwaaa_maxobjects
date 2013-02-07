@@ -7,21 +7,7 @@ typedef enum {
 	A_LONG,			///< long integer
 	A_FLOAT,		///< 32-bit float
 	A_SYM,			///< t_symbol pointer
-	A_OBJ,			///< t_object pointer (for argtype lists; passes the value of sym)
-	A_DEFLONG,		///< long but defaults to zero
-	A_DEFFLOAT,		///< float, but defaults to zero
-	A_DEFSYM,		///< symbol, defaults to ""
-	A_GIMME,		///< request that args be passed as an array, the routine will check the types itself.
-	A_CANT,			///< cannot typecheck args
-	A_SEMI,			///< semicolon
-	A_COMMA,		///< comma
-	A_DOLLAR,		///< dollar
-	A_DOLLSYM,		///< dollar
-	A_GIMMEBACK,	
-	A_DEFER	=		0x41,	
-	A_USURP =		0x42,	
-	A_DEFER_LOW =	0x43,	
-	A_USURP_LOW =	0x44	
+	A_OBJ,			///< t_object pointer (for argtype lists; passes the value of sym)	
 } e_max_atomtypes;
 
 // opaque struct for the host object:
@@ -50,8 +36,6 @@ typedef struct {
 	short			a_type;	
 	union word		a_w;
 } t_atom;
-
-t_luajit * luajit_this(void * x);
 
 t_symbol * gensym(const char * s);	
 
@@ -160,18 +144,13 @@ end
 
 -- overload some globals:
 function print(...)
-	local args = {...}
-	for i = 1, #args do 
-		-- and escape formatting?
-		args[i] = tostring(args[i])
+	local args = {}
+	for i = 1, select("#", ...) do 
+		-- TODO verify that this will escape printf-style fmt symbols?
+		args[i] = tostring((select(i, ...))):gsub("%%", "%%")
 	end
 	lib.post(table.concat(args, " "))
 end
-
-
---print(this)
---local filename = ffi.string(lib.object_attr_getsym(this, lib.gensym("file")).s_name)
---outlet(filename, 1.5, "foo", true, this, {}, nil, function() end)
 
 -- add lazy loader:
 return setmetatable(max, { 
