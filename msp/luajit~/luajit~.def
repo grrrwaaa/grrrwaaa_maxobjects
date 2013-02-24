@@ -1,6 +1,0 @@
-;luajit~.def
-
-LIBRARY luajit~.mxe
-
-EXPORTS
-	main

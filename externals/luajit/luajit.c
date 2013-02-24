@@ -55,13 +55,13 @@ int C74_EXPORT main(void)
 	
 	common_symbols_init();
 	
-	maxclass = class_new("luajit~", (method)luajit_new, (method)luajit_free, sizeof(t_luajit), 0L, A_GIMME, 0);
+	maxclass = class_new("luajit", (method)luajit_new, (method)luajit_free, sizeof(t_luajit), 0L, A_GIMME, 0);
 
 	class_addmethod(maxclass, (method)luajit_dsp64, "dsp64", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_filechanged, "filechanged", A_CANT, 0);
-	//class_setname("*~","luajit~"); // because the filename on disk is different from the object name in Max
+	//class_setname("*~","luajit"); // because the filename on disk is different from the object name in Max
 	
 	CLASS_ATTR_SYM(maxclass, "file", 0, t_luajit, filename);
 	CLASS_ATTR_LABEL(maxclass,	"file",	0,	"Lua script file name to load");
@@ -271,7 +271,7 @@ void luajit_perform64_method(t_luajit *x, t_object *dsp64, double **ins, long nu
 	
 //	if (IS_DENORM_DOUBLE(*in1) || IS_DENORM_DOUBLE(*in2)) {
 //		static int counter = 0; 
-//		post("luajit~ (%p): saw denorm (%d)", x, counter++); 
+//		post("luajit (%p): saw denorm (%d)", x, counter++); 
 //	}
 
 	while (sampleframes--) {

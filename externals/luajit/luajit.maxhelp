@@ -370,7 +370,7 @@
 					"filename" : "helpdetails.js",
 					"id" : "obj-2",
 					"ignoreclick" : 1,
-					"jsarguments" : [ "luajit~" ],
+					"jsarguments" : [ "luajit" ],
 					"maxclass" : "jsui",
 					"numinlets" : 1,
 					"numoutlets" : 1,
@@ -418,7 +418,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "" ],
 					"patching_rect" : [ 27.0, 329.0, 153.0, 20.0 ],
-					"text" : "luajit~ gl @file example.lua"
+					"text" : "luajit gl @file example.lua"
 				}
 
 			}
@@ -665,7 +665,7 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "luajit~..mxo",
+				"name" : "luajit.mxo",
 				"type" : "iLaX"
 			}
  ]
