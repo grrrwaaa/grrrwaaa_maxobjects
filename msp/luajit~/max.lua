@@ -14,7 +14,7 @@ typedef enum {
 typedef struct t_luajit t_luajit;
 typedef struct t_object t_object;
 
-// 32-bit max:
+// currently assumes 32-bit max:
 typedef long t_ptr_int;
 typedef t_ptr_int t_atom_long;
 typedef t_atom_long t_max_err;
@@ -37,8 +37,6 @@ typedef struct {
 	union word		a_w;
 } t_atom;
 
-t_symbol * gensym(const char * s);	
-
 t_max_err atom_setlong(t_atom *a, t_atom_long b);	
 t_max_err atom_setfloat(t_atom *a, double b);
 t_max_err atom_setsym(t_atom *a, t_symbol *b);	
@@ -49,19 +47,18 @@ t_atom_float atom_getfloat(const t_atom *a);
 t_symbol *atom_getsym(const t_atom *a);
 void *atom_getobj(const t_atom *a);
 
+t_symbol * gensym(const char * s);
+void post(const char *fmt, ...);	
+
+void *outlet_anything(void *o, t_symbol *s, short ac, t_atom *av);
 
 void object_post(t_object *x, const char *s, ...);
 void object_warn(t_object *x, const char *s, ...);
 void object_error(t_object *x, const char *s, ...);
 
-void *outlet_anything(void *o, t_symbol *s, short ac, t_atom *av);
-
 t_atom_long object_attr_getlong(void *x, t_symbol *s);
 t_symbol * object_attr_getsym(void *x, t_symbol *s);
 t_object * object_attr_getobj(void *x, t_symbol *s);
-
-
-void post(const char *fmt, ...);
 ]]
 
 local lib = ffi.C
