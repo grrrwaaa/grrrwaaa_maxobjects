@@ -47,6 +47,7 @@ lua_State * luajit_newstate(t_luajit *x);
 void luajit_dostring(t_luajit *x, C74_CONST char * text);
 t_max_err luajit_notify(t_luajit *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
 
+void luajit_reload(t_luajit *x);
 
 int C74_EXPORT main(void)
 {
@@ -101,6 +102,10 @@ int C74_EXPORT main(void)
 	// must register for ob3d use
 	jit_class_addmethod(maxclass, (method)jit_object_register, "register", A_CANT, 0L);
 	
+	jit_class_addmethod(maxclass, (method)luajit_reload, "reload", 0L);
+
+	// jit_object_new
+	
 	class_register(CLASS_BOX, maxclass);
 	luajit_class = maxclass;
 
@@ -114,11 +119,12 @@ t_jit_err luajit_draw(t_luajit *x) {
 	lua_getfield(x->L, LUA_REGISTRYINDEX, "debug.traceback");
 	debug_traceback = lua_gettop(x->L);	
 	lua_getglobal(x->L, "draw");
-	if (lua_pcall(x->L, 0, 0, debug_traceback)) {
-		object_error((t_object *)x, lua_tostring(x->L, -1));
+	if (lua_isfunction(x->L, -1)) {
+		if (lua_pcall(x->L, 0, 0, debug_traceback)) {
+			object_error((t_object *)x, lua_tostring(x->L, -1));
+		}
 	}
-	
-	// clear debug.traceback:
+	// clear returns & debug.traceback:
 	lua_settop(x->L, 0);
 	
 	return result;
@@ -133,7 +139,7 @@ t_jit_err luajit_dest_changed(t_luajit *x) {
 
 t_max_err luajit_filename_set(t_luajit *x, t_object *attr, long argc, t_atom *argv)
 {
-	x->filename = atom_getsym(argv);
+	x->filename = atom_getsym(argv); // A_SYM
 	defer(x, (method)luajit_doread, 0, 0, 0);
 	return 0;
 }
@@ -143,6 +149,10 @@ void luajit_filechanged(t_luajit *x, char *filename, short path) {
 	if (x->autowatch) {
 		defer(x, (method)luajit_doread, 0, 0, 0);
 	}
+}
+
+void luajit_reload(t_luajit *x) {
+	defer(x, (method)luajit_doread, 0, 0, 0);
 }
 
 void luajit_doread(t_luajit *x) {

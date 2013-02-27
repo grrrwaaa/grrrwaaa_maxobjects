@@ -33,7 +33,7 @@ local function make_state()
 		-- clipping region
 		-- stroke & fill styles, global alpha, line styles, etc.
 		lineWidth = 1,
-	})
+	}, state)
 end
 
 local function make_context()
