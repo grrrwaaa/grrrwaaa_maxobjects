@@ -15,7 +15,14 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#ifdef __APPLE__
+	#include "CoreFoundation/CoreFoundation.h"
+    #define MY_PLUGIN_BUNDLE_IDENTIFIER "com.cycling74.luajit"
+#endif
+
 void *luajit_class;
+
+char bundle_path[MAX_PATH_CHARS];
 
 typedef struct {
 	
@@ -103,6 +110,18 @@ lua_State * luajit_newstate(t_luajit *x) {
 		lua_setfield(L, LUA_REGISTRYINDEX, "debug.traceback");
 		
 		// add the local path to the package path:
+			
+		#ifdef __APPLE__
+			if (luaL_loadstring(L, "local path = ...; package.path = string.format('%s/modules/?.lua;%s/modules/?/init.lua;%s', path, path, package.path)")) {
+				object_error((t_object *)x, lua_tostring(L, -1));
+			} else {
+				lua_pushstring(L, bundle_path);
+				if (lua_pcall(L, 1, LUA_MULTRET, 0)) {
+					object_error((t_object *)x, lua_tostring(L, -1));
+				}
+			}
+		#endif
+		
 		if (path_toabsolutesystempath(x->filepath, "", local_path)) {
 			object_warn((t_object *)x, "problem resolving package path");
 		} else {	
@@ -345,7 +364,23 @@ int C74_EXPORT main(void) {
 	t_class *maxclass;
 	void *ob3d;
 	
+	#ifdef __APPLE__
+		// This should be actually defined somewhere else
+		#define MY_PLUGIN_BUNDLE_IDENTIFIER "com.cycling74.luajit"
+		
+		CFBundleRef mainBundle = CFBundleGetBundleWithIdentifier(CFSTR(MY_PLUGIN_BUNDLE_IDENTIFIER));
+		CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+		if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundle_path, MAX_PATH_CHARS))
+		{
+			// error!
+		}
+		CFRelease(resourcesURL);
+		
+		printf("bundle path %s\n", bundle_path);
+	#endif
+	
 	common_symbols_init();
+	
 	
 	maxclass = class_new("luajit", (method)luajit_new, (method)luajit_free, (long)sizeof(t_luajit), 
 				  0L, A_GIMME, 0);
