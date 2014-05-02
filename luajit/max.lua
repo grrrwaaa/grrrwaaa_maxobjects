@@ -1,6 +1,9 @@
 local ffi = require "ffi"
 local format = string.format
 
+local gl = require "gl"
+local sketch = gl.sketch
+
 ffi.cdef [[
 
 typedef enum {
@@ -70,6 +73,8 @@ t_atom_long object_attr_getlong(void *x, t_symbol *s);
 t_symbol * object_attr_getsym(void *x, t_symbol *s);
 t_object * object_attr_getobj(void *x, t_symbol *s);
 
+t_max_err object_notify(void *x, t_symbol *s, void *data);
+
 //// JITTER ////
 
 static const int JIT_MATRIX_MAX_DIMCOUNT = 32;                                          
@@ -111,35 +116,43 @@ t_jit_err jit_object_unregister(void * 	x);
 t_jit_err jit_object_notify(void * x, t_symbol * s, void * data);	
 void * jit_object_attr_get (void *x, t_symbol *attrname);
 
-void * jit_object_method(void *x, t_symbol *s, ...);
+t_symbol * jit_symbol_unique();
 
-// matrix routines... but they might not be exported...
-t_jit_matrix * jit_matrix_new (t_jit_matrix_info *info);
-t_jit_matrix * 	jit_matrix_newcopy (t_jit_matrix *copyme);
-t_jit_err 	jit_matrix_free (t_jit_matrix *x);
-t_jit_err 	jit_matrix_setinfo(t_jit_matrix *x, t_jit_matrix_info *info); 
-t_jit_err 	jit_matrix_setinfo_ex (t_jit_matrix *x, t_jit_matrix_info *info);
-t_jit_err 	jit_matrix_getinfo(t_jit_matrix *x, t_jit_matrix_info *info);
-t_jit_err 	jit_matrix_getdata (t_jit_matrix *x, void **data);
-t_jit_err 	jit_matrix_data (t_jit_matrix *x, void *data);
-t_jit_err 	jit_matrix_freedata (t_jit_matrix *x); 
-t_jit_err 	jit_matrix_info_default (t_jit_matrix_info *info);
-t_jit_err 	jit_matrix_clear (t_jit_matrix *x);
-t_jit_err 	jit_matrix_setcell1d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv); 
-t_jit_err 	jit_matrix_setcell2d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_setcell3d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_setplane1d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_setplane2d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_setplane3d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_setcell (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_getcell (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv, long *rac, t_atom **rav);
-t_jit_err 	jit_matrix_setall (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_fillplane (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_frommatrix (t_jit_matrix *dst_matrix, t_jit_matrix *src_matrix, t_matrix_conv_info *mcinfo);
-t_jit_err 	jit_matrix_op (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_exprfill (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
-t_jit_err 	jit_matrix_jit_gl_texture(t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+// matrix routines... not exported...
+//t_jit_matrix * jit_matrix_new (t_jit_matrix_info *info);
+//t_jit_matrix * 	jit_matrix_newcopy (t_jit_matrix *copyme);
+//t_jit_err 	jit_matrix_free (t_jit_matrix *x);
+//t_jit_err 	jit_matrix_setinfo(t_jit_matrix *x, t_jit_matrix_info *info); 
+//t_jit_err 	jit_matrix_setinfo_ex (t_jit_matrix *x, t_jit_matrix_info *info);
+//t_jit_err 	jit_matrix_getinfo(t_jit_matrix *x, t_jit_matrix_info *info);
+//t_jit_err 	jit_matrix_getdata (t_jit_matrix *x, void **data);
+//t_jit_err 	jit_matrix_data (t_jit_matrix *x, void *data);
+//t_jit_err 	jit_matrix_freedata (t_jit_matrix *x); 
+//t_jit_err 	jit_matrix_info_default (t_jit_matrix_info *info);
+//t_jit_err 	jit_matrix_clear (t_jit_matrix *x);
+//t_jit_err 	jit_matrix_setcell1d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv); 
+//t_jit_err 	jit_matrix_setcell2d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_setcell3d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_setplane1d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_setplane2d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_setplane3d (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_setcell (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_getcell (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv, long *rac, t_atom **rav);
+//t_jit_err 	jit_matrix_setall (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_fillplane (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_frommatrix (t_jit_matrix *dst_matrix, t_jit_matrix *src_matrix, t_matrix_conv_info *mcinfo);
+//t_jit_err 	jit_matrix_op (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_exprfill (t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
+//t_jit_err 	jit_matrix_jit_gl_texture(t_jit_matrix *x, t_symbol *s, long argc, t_atom *argv);
 
+/// LUAJIT HOST BINDING
+
+typedef struct {
+	
+	int (*draw)();
+	void (*anything)(t_symbol *s, long argc, t_atom *argv);
+	void (*bang)();
+} t_luajit_handlers;
 
 ]]
 
@@ -213,7 +226,11 @@ local t_object = {
 		
 		attr_getobj = function(self, name)
 			return lib.object_attr_getobj(self, gensym(name))
-		end
+		end,
+		
+		notify = function(self, name, dataptr)
+			return lib.object_notify(self, gensym(name), dataptr)
+		end,
 	}
 }
 ffi.metatype("t_object", t_object)
@@ -235,8 +252,40 @@ function t_jit_matrix:unlock(savelock)
 	lib.jit_object_method(self, gensym("sym_lock"), savelock)
 	return self
 end
-	
+
 ffi.metatype("t_jit_matrix", t_jit_matrix)
+
+local jit_matrix = {}
+jit_matrix.__index = jit_matrix
+
+local
+function jit_matrix_new(name, planecount, typename, ...)
+	-- name is optional:
+	if type(name) ~= "string" then
+		-- generate a new unique name:
+		return jit_matrix_new(
+			tostring(lib.jit_symbol_unique()),
+			name, planecount, typename, ...
+		)
+	end
+	-- does this matrix already exist?
+	local m = ffi.cast("t_jit_matrix *", max.jit_object_findregistered(gensym(name)))
+	if m == nil then
+		-- allocate
+	elseif planecount then
+		-- reconfigure
+	end
+	
+end
+
+setmetatable(jit_matrix, {
+	__call = function(mt, name, planecount, typename, ...)
+		local dims = {...}
+		
+		
+		
+	end,
+})
 
 local t_atom = ffi.metatype("t_atom", {
 	__tostring = function(self)
@@ -279,10 +328,12 @@ ffi.metatype("t_jit_matrix_info", t_jit_matrix_info)
 
 local max = {
 	gensym = gensym,
+	
 	post = function(fmt, ...) this:post(fmt, ...) end,
 	warn = function(fmt, ...) this:warn(fmt, ...) end,
 	error = function(fmt, ...) this:error(fmt, ...) end,
 	
+	jit_matrix = jit_matrix,
 }
 
 local
@@ -348,7 +399,7 @@ function max:getmatrix(name)
 end
 
 local lua_outlet = this:attr_getobj("lua_outlet")
-assert(lua_outlet, "could not acquire lua outlet")
+assert(lua_outlet ~= nil, "could not acquire lua outlet")
 
 function outlet(name, ...)
 	assert(name and type(name) == "string", "outlet argument 1 must be a string")
@@ -368,6 +419,66 @@ function print(...)
 		args[i] = tostring((select(i, ...))):gsub("%%", "%%")
 	end
 	lib.post(table.concat(args, " "))
+end
+
+local lua_handlers = ffi.cast("t_luajit_handlers *", this:attr_getobj("lua_handlers"))
+assert(lua_handlers ~= nil, "could not acquire lua handlers")
+
+assert(app == nil, "app already defined!")
+app = {
+	
+}
+
+-- override C handlers:
+lua_handlers.draw = function()
+	if _G.draw and type(_G.draw) == "function" then
+		local ok, err = xpcall(_G.draw, debug.traceback)
+		if not ok then 
+			this:error(err) 
+			return 1
+		end
+	end
+	return 0
+end
+
+lua_handlers.anything = function(symbol, argc, argv)
+	local s = tostring(symbol)
+	local f = _G[s]
+	if f and type(f) == "function" then
+		local ok, err
+		if argc > 1 then
+			local args = {}
+			for i = 1, argc do
+				args[i] = argv[i-1]
+			end
+			ok, err = xpcall(function() f(unpack(args)) end, debug.traceback)
+		elseif argc == 1 then
+			ok, err = xpcall(function() f(argv[0]) end, debug.traceback)
+		else
+			ok, err = xpcall(f, debug.traceback)
+		end
+		if not ok then 
+			this:error(err)
+		end
+	else
+		f = _G.anything
+		if f and type(f) == "function" then
+			local ok, err = xpcall(function() f(s, argc, argv) end, debug.traceback)
+			if not ok then 
+				this:error(err)
+			end
+		end
+	end
+end
+
+lua_handlers.bang = function()
+	local f = _G.bang
+	if f and type(f) == "function" then
+		local ok, err = xpcall(f, debug.traceback)
+		if not ok then 
+			this:error(err)
+		end
+	end
 end
 
 -- add lazy loader:
