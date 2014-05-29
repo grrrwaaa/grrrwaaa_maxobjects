@@ -6,6 +6,9 @@ local sketch = gl.sketch
 
 ffi.cdef [[
 
+static const int JIT_MATRIX_MAX_DIMCOUNT = 32;                                          
+static const int JIT_MATRIX_MAX_PLANECOUNT = 32;
+
 typedef enum {
 	A_NOTHING = 0,	///< no type, thus no atom
 	A_LONG,			///< long integer
@@ -50,6 +53,28 @@ typedef struct {
 	union word		a_w;
 } t_atom;
 
+typedef t_atom_long t_jit_err;
+typedef struct t_jit_matrix t_jit_matrix;
+
+typedef struct {
+	long			size;			///< in bytes (0xFFFFFFFF=UNKNOWN)
+	t_symbol		*type;			///< primitifve type (char, long, float32, or float64)
+	long			flags;			///< flags to specify data reference, handle, or tightly packed
+	long			dimcount;		///< number of dimensions
+	long			dim[JIT_MATRIX_MAX_DIMCOUNT];		///< dimension sizes
+	long			dimstride[JIT_MATRIX_MAX_DIMCOUNT]; ///< stride across dimensions in bytes
+	long			planecount;		///< number of planes
+} t_jit_matrix_info;
+
+typedef struct {
+	long 	flags;									///< flags for whether or not to use interpolation, or source/destination dimensions
+	long	planemap[JIT_MATRIX_MAX_PLANECOUNT];	///< plane mapping
+	long	srcdimstart[JIT_MATRIX_MAX_DIMCOUNT];	///< source dimension start	
+	long	srcdimend[JIT_MATRIX_MAX_DIMCOUNT];		///< source dimension end
+	long	dstdimstart[JIT_MATRIX_MAX_DIMCOUNT];	///< destination dimension start
+	long	dstdimend[JIT_MATRIX_MAX_DIMCOUNT];		///< destination dimension end
+} t_matrix_conv_info;
+
 t_max_err atom_setlong(t_atom *a, t_atom_long b);	
 t_max_err atom_setfloat(t_atom *a, double b);
 t_max_err atom_setsym(t_atom *a, t_symbol *b);	
@@ -75,32 +100,6 @@ t_object * object_attr_getobj(void *x, t_symbol *s);
 
 t_max_err object_notify(void *x, t_symbol *s, void *data);
 
-//// JITTER ////
-
-static const int JIT_MATRIX_MAX_DIMCOUNT = 32;                                          
-static const int JIT_MATRIX_MAX_PLANECOUNT = 32;
-
-typedef t_atom_long t_jit_err;
-typedef struct t_jit_matrix t_jit_matrix;
-
-typedef struct {
-	long			size;			///< in bytes (0xFFFFFFFF=UNKNOWN)
-	t_symbol		*type;			///< primitifve type (char, long, float32, or float64)
-	long			flags;			///< flags to specify data reference, handle, or tightly packed
-	long			dimcount;		///< number of dimensions
-	long			dim[JIT_MATRIX_MAX_DIMCOUNT];		///< dimension sizes
-	long			dimstride[JIT_MATRIX_MAX_DIMCOUNT]; ///< stride across dimensions in bytes
-	long			planecount;		///< number of planes
-} t_jit_matrix_info;
-
-typedef struct {
-	long 	flags;									///< flags for whether or not to use interpolation, or source/destination dimensions
-	long	planemap[JIT_MATRIX_MAX_PLANECOUNT];	///< plane mapping
-	long	srcdimstart[JIT_MATRIX_MAX_DIMCOUNT];	///< source dimension start	
-	long	srcdimend[JIT_MATRIX_MAX_DIMCOUNT];		///< source dimension end
-	long	dstdimstart[JIT_MATRIX_MAX_DIMCOUNT];	///< destination dimension start
-	long	dstdimend[JIT_MATRIX_MAX_DIMCOUNT];		///< destination dimension end
-} t_matrix_conv_info;
 
 // Jitter object model
 void * jit_object_new(t_symbol *classname, ...);	
@@ -253,6 +252,41 @@ function t_jit_matrix:unlock(savelock)
 	return self
 end
 
+function t_jit_matrix:data() 
+	local dataptr = ffi.new("char *[1]")
+	lib.jit_object_method(self, gensym("getdata"), dataptr)
+	return dataptr[0]
+end
+
+function t_jit_matrix:clear() 
+	lib.jit_object_method(self, gensym("clear"))
+	return self
+end
+
+function t_jit_matrix:info()
+	local info = ffi.new("t_jit_matrix_info[1]")
+	lib.jit_object_method(self, gensym("getinfo"), info)
+	
+	info = {
+		-- the meta-properties in a more Lua-friendly form:
+		size = info[0].size,
+		type = tostring(info[0].type),
+		flags = info[0].flags,
+		dimcount = info[0].dimcount,
+		dim = info[0].dim,
+		dimstride = info[0].dimstride,
+		planecount = info[0].planecount,
+		
+		-- the raw byte pointer:
+		--bp = ffi.new("char *", dataptr[0]),
+			
+		-- cached to prevent gc:
+		_raw = info,	
+	}
+	
+	return info
+end
+
 ffi.metatype("t_jit_matrix", t_jit_matrix)
 
 local jit_matrix = {}
@@ -335,24 +369,6 @@ local max = {
 	
 	jit_matrix = jit_matrix,
 }
-
-local
-function matrixinfo_lua(m)
-	-- get matrix data:
-	local info = ffi.new("t_jit_matrix_info[1]")
-	max.jit_object_method(m, max.gensym("getinfo"), info)
-	local m = {
-		-- the meta-properties in a more Lua-friendly form:
-		type = tostring(info[0].type),
-		planecount = info[0].planecount,
-		dimcount = info[0].dimcount,
-		dim = info[0].dim,
-		stride = info[0].dimstride,
-		
-		-- cached to prevent gc:
-		_raw = info,	
-	}
-end
 
 -- actually probably want to return a wrapper rather than the raw pointer
 function max:getmatrix(name)
@@ -449,11 +465,11 @@ lua_handlers.anything = function(symbol, argc, argv)
 		if argc > 1 then
 			local args = {}
 			for i = 1, argc do
-				args[i] = argv[i-1]
+				args[i] = atom_get(argv[i-1])
 			end
 			ok, err = xpcall(function() f(unpack(args)) end, debug.traceback)
 		elseif argc == 1 then
-			ok, err = xpcall(function() f(argv[0]) end, debug.traceback)
+			ok, err = xpcall(function() f(atom_get(argv[0])) end, debug.traceback)
 		else
 			ok, err = xpcall(f, debug.traceback)
 		end

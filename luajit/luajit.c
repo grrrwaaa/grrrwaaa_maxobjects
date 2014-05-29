@@ -47,6 +47,8 @@ typedef struct _luajit
 	void * filewatcher;
 	long autowatch;
 	
+	char system_filename_conformed[MAX_PATH_CHARS];
+	
 } t_luajit;
 
 t_max_err luajit_handlers_set(t_luajit *x, t_object *attr, long argc, t_atom *argv) {
@@ -125,6 +127,12 @@ lua_State * luajit_newstate(t_luajit *x) {
 		if (path_toabsolutesystempath(x->filepath, "", local_path)) {
 			object_warn((t_object *)x, "problem resolving package path");
 		} else {	
+			
+			//post("path %s", local_path);
+			
+			lua_pushstring(L, local_path);
+			lua_setglobal(L, "path");
+			
 			if (luaL_loadstring(L, "local path = ...; package.path = string.format('%s/?.lua;%s/?/init.lua;%s', path, path, package.path)")) {
 				object_error((t_object *)x, lua_tostring(L, -1));
 			} else {
@@ -157,7 +165,10 @@ void luajit_dostring(t_luajit *x, C74_CONST char * text) {
 
 void luajit_doread(t_luajit *x) {
 	char filename[MAX_PATH_CHARS];
+	char system_filename[MAX_PATH_CHARS];
+	
 	short path;
+	t_max_err err;
 	t_fourcc filetype = 'TEXT';
 	t_fourcc outtype;
 	
@@ -169,6 +180,9 @@ void luajit_doread(t_luajit *x) {
 		object_error((t_object *)x, "%s: not found", x->filename->s_name);
 		return;
 	}
+	
+	err = path_toabsolutesystempath	(path, filename, system_filename);	
+	path_nameconform(system_filename, x->system_filename_conformed, PATH_STYLE_NATIVE, PATH_TYPE_BOOT);
 	
 	// we have a file:
 	if (path_opensysfile(filename, path, &fh, READ_PERM)) {
@@ -306,6 +320,16 @@ void luajit_assist(t_luajit *x, void *b, long m, long a, char *s)
 	}
 }
 
+void luajit_dblclick(t_luajit *x) {
+	// open a text view?
+	// http://cycling74.com/sdk/MaxSDK-6.1.4/html/chapter_enhancements.html
+	
+	// or just open the system text editor for now:
+	char msg[4096];
+	snprintf(msg, 4095, "edit %s", x->filename->s_name);
+	system(msg);
+}
+
 void luajit_free(t_luajit *x) {
 	//dsp_free((t_pxobject *)x);
 	
@@ -320,7 +344,7 @@ void luajit_free(t_luajit *x) {
 void *luajit_new(t_symbol *s, long argc, t_atom *argv)
 {
 	t_luajit *x = NULL;
-    long i;
+    //long i;
 	long attrstart;
 	t_symbol *dest_name_sym = _jit_sym_nothing;
 	
@@ -333,11 +357,6 @@ void *luajit_new(t_symbol *s, long argc, t_atom *argv)
 			return 0;
 		}
 	
-		// add a general purpose outlet (rightmost)
-		//max_jit_obex_dumpout_set(x, outlet_new(x,NULL));
-		
-		x->lua_outlet = outlet_new(x, 0);
-		
 		// get first normal arg, the destination name
 		attrstart = max_jit_attr_args_offset(argc,argv);
 		if (attrstart && argv) {
@@ -348,6 +367,10 @@ void *luajit_new(t_symbol *s, long argc, t_atom *argv)
 		// configure audio:
 		dsp_setup((t_pxobject *)x,2);
 		outlet_new((t_pxobject *)x, "signal");
+		
+		// add a general purpose outlet (rightmost)
+		//max_jit_obex_dumpout_set(x, outlet_new(x,NULL));
+		x->lua_outlet = outlet_new(x, 0);
 
 		// default attrs:
 		x->filename = _sym_none;
@@ -389,6 +412,7 @@ int C74_EXPORT main(void) {
 	class_addmethod(maxclass, (method)luajit_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)luajit_filechanged, "filechanged", A_CANT, 0); 
+	class_addmethod(maxclass, (method)luajit_dblclick, "dblclick", A_CANT, 0);
 	
 	CLASS_ATTR_SYM(maxclass, "file", 0, t_luajit, filename);
 	CLASS_ATTR_LABEL(maxclass,	"file",	0,	"Lua script file name to load");
