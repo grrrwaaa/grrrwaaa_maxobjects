@@ -8,7 +8,7 @@
 			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 685.0, 44.0, 723.0, 420.0 ],
+		"rect" : [ 678.0, 44.0, 723.0, 418.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 10.0,
@@ -28,6 +28,34 @@
 		"digest" : "",
 		"tags" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-22",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 214.0, 329.0, 60.0, 17.0 ],
+					"text" : "pos 40 40"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-2",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "bang" ],
+					"patching_rect" : [ 324.0, 161.0, 56.0, 19.0 ],
+					"text" : "loadbang"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
@@ -61,7 +89,7 @@
 							"architecture" : "x86"
 						}
 ,
-						"rect" : [ 51.0, 44.0, 1330.0, 710.0 ],
+						"rect" : [ 36.0, 71.0, 1330.0, 710.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -100,12 +128,12 @@
 									"fontsize" : 10.0,
 									"frgb" : 0.0,
 									"id" : "obj-16",
-									"linecount" : 6,
+									"linecount" : 7,
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 20.5, 330.0, 428.0, 79.0 ],
-									"text" : "TODO: \ncompare using a pre-calculated distortion texture rather than codebox\ncompare using a distortion mesh rather than jit.gl.pix\napply the chroma aberration correction\nuse VScreenCenter, EyeToScreenDistance correction\ncompare using single-pass via vertex displacement",
+									"patching_rect" : [ 20.5, 330.0, 428.0, 92.0 ],
+									"text" : "TODO: \nuse full display (no black borders)\ncompare using a pre-calculated distortion texture rather than codebox\ncompare using a distortion mesh rather than jit.gl.pix\napply the chroma aberration correction\nuse VScreenCenter, EyeToScreenDistance correction\ncompare using single-pass via vertex displacement",
 									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 								}
 
@@ -1014,7 +1042,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "bang" ],
-									"patching_rect" : [ 45.25, 536.5, 20.0, 20.0 ]
+									"patching_rect" : [ 73.25, 503.0, 20.0, 20.0 ]
 								}
 
 							}
@@ -1025,7 +1053,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 112.0, 599.0, 68.5, 63.0 ]
+									"patching_rect" : [ 73.25, 599.0, 68.5, 63.0 ]
 								}
 
 							}
@@ -1184,12 +1212,26 @@
 												"box" : 												{
 													"fontname" : "Arial",
 													"fontsize" : 12.0,
+													"id" : "obj-3",
+													"maxclass" : "newobj",
+													"numinlets" : 0,
+													"numoutlets" : 1,
+													"outlettype" : [ "" ],
+													"patching_rect" : [ 484.0, 23.0, 116.0, 20.0 ],
+													"text" : "param distort_mix 1"
+												}
+
+											}
+, 											{
+												"box" : 												{
+													"fontname" : "Arial",
+													"fontsize" : 12.0,
 													"id" : "obj-2",
 													"maxclass" : "newobj",
 													"numinlets" : 0,
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
-													"patching_rect" : [ 269.0, 11.0, 116.0, 20.0 ],
+													"patching_rect" : [ 313.0, 23.0, 116.0, 20.0 ],
 													"text" : "param rift_scale 0.8"
 												}
 
@@ -1203,14 +1245,14 @@
 													"numinlets" : 0,
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
-													"patching_rect" : [ 152.0, 47.0, 177.0, 20.0 ],
+													"patching_rect" : [ 196.0, 59.0, 177.0, 20.0 ],
 													"text" : "param LensCenter 0.151976 0."
 												}
 
 											}
 , 											{
 												"box" : 												{
-													"code" : "// calculate barrel distortion:\r\n// (this could be cached in a texturemap)\r\n\r\n// initial image plane NDC coordinate, shifted to be around lens center\r\nt = snorm - LensCenter;\r\n// compute barrel distortion\r\nr2 = t.x*t.x + t.y*t.y;\r\nr4 = r2*r2;\r\nt = t * (k.x + k.y*r2 + k.z*r4 + k.w*r2*r4);\r\n\r\n// field of regard (rift_scale): ??\r\nt = t * rift_scale;\r\n\r\n// shift back from center:\r\nt = t + LensCenter;\r\n\r\n// convert to 0..1 range:\r\nt = t * 0.5 + 0.5;\r\n\r\nwarp = t;\r\n\r\ncolor = vec(0, 0, 0, 1);\r\n\r\nif (warp.x >= 0 && warp.x < 1 && warp.y >= 0 && warp.y <= 1) {\r\n\tcolor = sample(in1, warp);\r\n}\r\n\r\nout = color;",
+													"code" : "// calculate barrel distortion:\r\n// (this could be cached in a texturemap)\r\n\r\n// initial image plane NDC coordinate, shifted to be around lens center\r\nt = snorm - LensCenter;\r\n// compute barrel distortion\r\nr2 = (t.x*t.x + t.y*t.y);\r\nr4 = r2*r2;\r\nt1 = t * (k.x + k.y*r2 + k.z*r4 + k.w*r2*r4);\r\n\r\n// field of regard (rift_scale): ??\r\nt1 = t1 * rift_scale;\r\n\r\nt1 = mix(t, t1, distort_mix);\r\n\r\n// shift back from center:\r\nt1 = t1 + LensCenter;\r\n\r\n// convert to 0..1 range:\r\nt1 = t1 * 0.5 + 0.5;\r\n\r\nwarp = t1;\r\n\r\ncolor = vec(0, 0, 0, 1);\r\n\r\nif (warp.x >= 0 && warp.x < 1 && warp.y >= 0 && warp.y <= 1) {\r\n\tcolor = sample(in1, warp);\r\n}\r\n\r\nout = color;",
 													"fontname" : "Arial",
 													"fontsize" : 12.0,
 													"id" : "obj-29",
@@ -1218,7 +1260,7 @@
 													"numinlets" : 1,
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
-													"patching_rect" : [ 37.0, 82.0, 541.0, 344.0 ]
+													"patching_rect" : [ 81.0, 94.0, 541.0, 344.0 ]
 												}
 
 											}
@@ -1231,7 +1273,7 @@
 													"numinlets" : 0,
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
-													"patching_rect" : [ 370.0, 47.0, 127.0, 20.0 ],
+													"patching_rect" : [ 414.0, 59.0, 127.0, 20.0 ],
 													"text" : "param k 1 0.22 0.24 0"
 												}
 
@@ -1245,7 +1287,7 @@
 													"numinlets" : 0,
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
-													"patching_rect" : [ 37.0, 33.0, 30.0, 20.0 ],
+													"patching_rect" : [ 81.0, 45.0, 30.0, 20.0 ],
 													"text" : "in 1"
 												}
 
@@ -1258,7 +1300,7 @@
 													"maxclass" : "newobj",
 													"numinlets" : 1,
 													"numoutlets" : 0,
-													"patching_rect" : [ 37.0, 437.0, 37.0, 20.0 ],
+													"patching_rect" : [ 81.0, 449.0, 37.0, 20.0 ],
 													"text" : "out 1"
 												}
 
@@ -1309,7 +1351,7 @@
 											"architecture" : "x86"
 										}
 ,
-										"rect" : [ 629.0, 64.0, 716.0, 477.0 ],
+										"rect" : [ 700.0, 272.0, 716.0, 477.0 ],
 										"bgcolor" : [ 0.9, 0.9, 0.9, 1.0 ],
 										"bglocked" : 0,
 										"openinpresentation" : 0,
@@ -1330,6 +1372,20 @@
 										"digest" : "",
 										"tags" : "",
 										"boxes" : [ 											{
+												"box" : 												{
+													"fontname" : "Arial",
+													"fontsize" : 12.0,
+													"id" : "obj-3",
+													"maxclass" : "newobj",
+													"numinlets" : 0,
+													"numoutlets" : 1,
+													"outlettype" : [ "" ],
+													"patching_rect" : [ 469.0, 8.0, 116.0, 20.0 ],
+													"text" : "param distort_mix 1"
+												}
+
+											}
+, 											{
 												"box" : 												{
 													"fontname" : "Arial",
 													"fontsize" : 12.0,
@@ -1359,7 +1415,7 @@
 											}
 , 											{
 												"box" : 												{
-													"code" : "// calculate barrel distortion:\r\n// (this could be cached in a texturemap)\r\n\r\n// initial image plane NDC coordinate, shifted to be around lens center\r\nt = snorm - LensCenter;\r\n// compute barrel distortion\r\nr2 = t.x*t.x + t.y*t.y;\r\nr4 = r2*r2;\r\nt = t * (k.x + k.y*r2 + k.z*r4 + k.w*r2*r4);\r\n\r\n// field of regard (rift_scale): ??\r\nt = t * rift_scale;\r\n\r\n// shift back from center:\r\nt = t + LensCenter;\r\n\r\n// convert to 0..1 range:\r\nt = t * 0.5 + 0.5;\r\n\r\nwarp = t;\r\n\r\ncolor = vec(0, 0, 0, 1);\r\n\r\nif (warp.x >= 0 && warp.x < 1 && warp.y >= 0 && warp.y <= 1) {\r\n\tcolor = sample(in1, warp);\r\n}\r\n\r\nout = color;",
+													"code" : "// calculate barrel distortion:\r\n// (this could be cached in a texturemap)\r\n\r\n// initial image plane NDC coordinate, shifted to be around lens center\r\nt = snorm - LensCenter;\r\n// compute barrel distortion\r\nr2 = (t.x*t.x + t.y*t.y);\r\nr4 = r2*r2;\r\nt1 = t * (k.x + k.y*r2 + k.z*r4 + k.w*r2*r4);\r\n\r\n// field of regard (rift_scale): ??\r\nt1 = t1 * rift_scale;\r\n\r\nt1 = mix(t, t1, distort_mix);\r\n\r\n// shift back from center:\r\nt1 = t1 + LensCenter;\r\n\r\n// convert to 0..1 range:\r\nt1 = t1 * 0.5 + 0.5;\r\n\r\nwarp = t1;\r\n\r\ncolor = vec(0, 0, 0, 1);\r\n\r\nif (warp.x >= 0 && warp.x < 1 && warp.y >= 0 && warp.y <= 1) {\r\n\tcolor = sample(in1, warp);\r\n}\r\n\r\nout = color;",
 													"fontname" : "Arial",
 													"fontsize" : 12.0,
 													"id" : "obj-29",
@@ -1492,13 +1548,13 @@
 									"fontname" : "Verdana",
 									"fontsize" : 10.0,
 									"id" : "obj-30",
-									"linecount" : 2,
+									"linecount" : 3,
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_gl_texture", "" ],
-									"patching_rect" : [ 837.0, 503.0, 169.0, 31.0 ],
-									"text" : "jit.gl.camera scene @capture 1 @projection_mode frustum",
+									"patching_rect" : [ 837.0, 503.0, 173.0, 43.0 ],
+									"text" : "jit.gl.camera scene @capture 1 @projection_mode frustum @antialias 1",
 									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 								}
 
@@ -1508,13 +1564,13 @@
 									"fontname" : "Verdana",
 									"fontsize" : 10.0,
 									"id" : "obj-2",
-									"linecount" : 2,
+									"linecount" : 3,
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_gl_texture", "" ],
-									"patching_rect" : [ 482.0, 503.0, 169.0, 31.0 ],
-									"text" : "jit.gl.camera scene @capture 1 @projection_mode frustum",
+									"patching_rect" : [ 482.0, 503.0, 173.0, 43.0 ],
+									"text" : "jit.gl.camera scene @capture 1 @projection_mode frustum @antialias 1",
 									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 								}
 
@@ -1528,8 +1584,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 482.0, 231.0, 84.0, 19.0 ],
-									"text" : "jit.anim.node",
+									"patching_rect" : [ 482.0, 231.0, 194.0, 19.0 ],
+									"text" : "jit.anim.node @position -0.032 0. 0.",
 									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 								}
 
@@ -1543,8 +1599,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 837.0, 231.0, 84.0, 19.0 ],
-									"text" : "jit.anim.node",
+									"patching_rect" : [ 837.0, 231.0, 190.0, 19.0 ],
+									"text" : "jit.anim.node @position 0.032 0. 0.",
 									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 								}
 
@@ -2885,7 +2941,7 @@
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
 									"patching_rect" : [ 16.0, 260.0, 553.0, 33.0 ],
-									"text" : "jit.gl.gridshape scene @shape plane @rotate 90 1 0 0 @position 0 -1 0 @scale 50 50 50 @dim 50 50 @poly_mode 1 1 @depth_enable 1"
+									"text" : "jit.gl.gridshape scene @shape plane @rotate 90 1 0 0 @position 0 -1 0 @scale 50 50 50 @dim 50 50 @poly_mode 1 1 @depth_enable 1 @color 1 1 1 0.5 @blend_enable 1"
 								}
 
 							}
@@ -3199,8 +3255,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "bang", "" ],
-					"patching_rect" : [ 31.0, 247.0, 219.0, 20.0 ],
-					"text" : "jit.gl.render rift @erase_color 0 0 0 1"
+					"patching_rect" : [ 31.0, 247.0, 96.0, 20.0 ],
+					"text" : "jit.gl.render rift"
 				}
 
 			}
@@ -3310,6 +3366,24 @@
 					"disabled" : 0,
 					"hidden" : 0,
 					"source" : [ "obj-19", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-19", 0 ],
+					"disabled" : 0,
+					"hidden" : 0,
+					"source" : [ "obj-2", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-8", 0 ],
+					"disabled" : 0,
+					"hidden" : 0,
+					"source" : [ "obj-22", 0 ]
 				}
 
 			}
