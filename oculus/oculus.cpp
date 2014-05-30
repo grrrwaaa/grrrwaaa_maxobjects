@@ -23,6 +23,9 @@ extern "C" {
 t_class *oculus_class;
 static t_symbol * ps_quat;
 
+OVR::System sys;
+OVR::Ptr<OVR::DeviceManager> pManager;
+
 char bundle_path[MAX_PATH_CHARS];
 
 class t_oculus {
@@ -31,28 +34,30 @@ public:
 	void *		ob3d;		// OpenGL scene state
 	
 	void *		outlet_q;
+	void *		outlet_c;
 	
 	// the quaternion orientation of the HMD:
 	t_atom		quat[4];
 	
-	OVR::System sys;
-	OVR::Ptr<OVR::DeviceManager> pManager;
 	OVR::Ptr<OVR::HMDDevice>    pHMD;
 	OVR::Ptr<OVR::SensorDevice> pSensor;
 	OVR::SensorFusion			SFusion;
 	OVR::HMDInfo				hmd;
 	
 	t_oculus() {
-		
-		if (!OVR::System::IsInitialized()) {
-			OVR::System::Init(OVR::Log::ConfigureDefaultLog(OVR::LogMask_All));
+		if (!sys.IsInitialized()) {
+			object_post(&ob, "initializing LibOVR system");
+			sys.Init(OVR::Log::ConfigureDefaultLog(OVR::LogMask_All));
 		}
 		
-		pManager = *OVR::DeviceManager::Create();
+		if (!pManager) {
+			pManager = *OVR::DeviceManager::Create();
+		}
+		
 		pHMD     = *pManager->EnumerateDevices<OVR::HMDDevice>().CreateDevice();
 		
 		if (pHMD == 0) {
-			error("no HMD found");
+			object_error(&ob, "no HMD found");
 		} else {
 			pHMD->GetDeviceInfo(&hmd);
 			
@@ -61,15 +66,62 @@ public:
 			SFusion.AttachToSensor(pSensor);
 			
 			
-			post("prediction delta: %f", SFusion.GetPredictionDelta());
+			object_post(&ob, "prediction delta: %f", SFusion.GetPredictionDelta());
 			
 			if (SFusion.HasMagCalibration()) {
-				post("using magnetometer for yaw correction");
+				object_post(&ob, "using magnetometer for yaw correction");
 				SFusion.SetYawCorrectionEnabled(true);
 			}
+			
+			// automatically get info:
+			info();
 		}
 	}
 
+	~t_oculus() {
+		
+	}
+	
+	void info() {
+		
+		t_atom props[4];
+		
+		atom_setfloat(props+0, hmd.DesktopX);
+		atom_setfloat(props+1, hmd.DesktopY);
+		outlet_anything(outlet_c, gensym("Desktop"), 2, props); 
+		
+		atom_setfloat(props+0, hmd.HResolution);
+		atom_setfloat(props+1, hmd.VResolution);
+		outlet_anything(outlet_c, gensym("Resolution"), 2, props);
+		
+		atom_setfloat(props+0, hmd.HScreenSize);
+		atom_setfloat(props+1, hmd.VScreenSize);
+		outlet_anything(outlet_c, gensym("ScreenSize"), 2, props);
+		
+		atom_setfloat(props+0, hmd.VScreenCenter);
+		outlet_anything(outlet_c, gensym("VScreenCenter"), 1, props);
+		
+		atom_setfloat(props+0, hmd.EyeToScreenDistance);
+		outlet_anything(outlet_c, gensym("EyeToScreenDistance"), 1, props);
+		
+		atom_setfloat(props+0, hmd.LensSeparationDistance);
+		outlet_anything(outlet_c, gensym("LensSeparationDistance"), 1, props);
+		
+		atom_setfloat(props+0, hmd.InterpupillaryDistance);
+		outlet_anything(outlet_c, gensym("InterpupillaryDistance"), 1, props);
+		
+		atom_setfloat(props+0, hmd.DistortionK[0]);
+		atom_setfloat(props+1, hmd.DistortionK[1]);
+		atom_setfloat(props+2, hmd.DistortionK[2]);
+		atom_setfloat(props+3, hmd.DistortionK[3]);
+		outlet_anything(outlet_c, gensym("DistortionK"), 4, props);
+		
+		atom_setfloat(props+0, hmd.ChromaAbCorrection[0]);
+		atom_setfloat(props+1, hmd.ChromaAbCorrection[1]);
+		atom_setfloat(props+2, hmd.ChromaAbCorrection[2]);
+		atom_setfloat(props+3, hmd.ChromaAbCorrection[3]);
+		outlet_anything(outlet_c, gensym("ChromaAbCorrection"), 4, props);
+	}
 };
 
 t_jit_err oculus_draw(t_oculus *x) {
@@ -101,15 +153,17 @@ t_max_err oculus_notify(t_oculus *x, t_symbol *s, t_symbol *msg, void *sender, v
 // SFusion.SetPrediction(0.03, true);
 
 void oculus_bang(t_oculus * x) {
-	
 	//x->SFusion.GetOrientation();
 	OVR::Quatf orientation = x->SFusion.GetPredictedOrientation();
 	atom_setfloat(x->quat  , orientation.x);
 	atom_setfloat(x->quat+1, orientation.y);
 	atom_setfloat(x->quat+2, orientation.z);
 	atom_setfloat(x->quat+3, orientation.w);
-	
-	outlet_anything(x->outlet_q, ps_quat, 4, x->quat); 
+	outlet_list(x->outlet_q, 0L, 4, x->quat); 
+}
+
+void oculus_info(t_oculus *x) {
+	x->info();
 }
 
 void oculus_anything(t_oculus *x, t_symbol *s, long argc, t_atom *argv)
@@ -143,15 +197,26 @@ void oculus_jit_matrix(t_oculus *x, t_symbol *s, long argc, t_atom *argv)
 void oculus_assist(t_oculus *x, void *b, long m, long a, char *s)
 {
 	if (m == ASSIST_INLET) { // inlet
-		sprintf(s, "I am inlet %ld", a);
-	} 
-	else {	// outlet
-		sprintf(s, "I am outlet %ld", a); 			
+		if (a == 0) {
+			sprintf(s, "messages in, bang to report orientation");
+		} else {
+			sprintf(s, "I am inlet %ld", a);
+		}
+	} else {	// outlet
+		if (a == 0) {
+			sprintf(s, "HMD orientation quaternion (list)"); 
+		} else if (a == 1) {
+			sprintf(s, "HMD properties (messages)"); 
+		} else {
+			sprintf(s, "I am outlet %ld", a); 
+		}
 	}
 }
 
 
 void oculus_free(t_oculus *x) {
+	x->~t_oculus();
+
 	// free resources associated with our obex entry
 	jit_ob3d_free(x);
 	max_jit_object_free(x);
@@ -178,8 +243,8 @@ void *oculus_new(t_symbol *s, long argc, t_atom *argv)
 		
 		// add a general purpose outlet (rightmost)
 		max_jit_obex_dumpout_set(x, outlet_new(x,NULL));
-	
-		x->outlet_q = outlet_new(x, 0);
+		x->outlet_c = outlet_new(x, 0);
+		x->outlet_q = listout(x);
 		
 		// default attrs:
 		
@@ -217,6 +282,7 @@ int C74_EXPORT main(void) {
 	
 	class_addmethod(maxclass, (method)oculus_jit_matrix, "jit_matrix", A_GIMME, 0); 
 	class_addmethod(maxclass, (method)oculus_bang, "bang", 0);
+	class_addmethod(maxclass, (method)oculus_info, "info", 0);
 	class_addmethod(maxclass, (method)oculus_anything, "anything", A_GIMME, 0);
 
 	// set up object extension for 3d object, customized with flags
