@@ -1,0 +1,4 @@
+LIBRARY freenect3d.mxe
+
+EXPORTS
+	main
