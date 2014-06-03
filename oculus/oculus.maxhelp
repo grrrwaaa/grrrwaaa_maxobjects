@@ -8,7 +8,7 @@
 			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 446.0, 44.0, 921.0, 446.0 ],
+		"rect" : [ 662.0, 44.0, 921.0, 446.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 10.0,
@@ -29,6 +29,201 @@
 		"tags" : "",
 		"boxes" : [ 			{
 				"box" : 				{
+					"bubble" : 1,
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"frgb" : 0.0,
+					"id" : "obj-45",
+					"linecount" : 2,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 368.5, 124.0, 94.0, 35.0 ],
+					"text" : "Define your world here",
+					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"frgb" : 0.0,
+					"id" : "obj-21",
+					"linecount" : 3,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 300.0, 46.0, 487.0, 43.0 ],
+					"text" : "Use a jit.gl.node to render the scene twice into offscreen textures, once for each eye. All objects in the scene must be created in the jit.gl.node context (\"world\"), not the jit.window context (\"oculus\"). Stereoscopic rendering assumes that 1 world unit == 1 meter. "
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-10",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"outlettype" : [ "jit_gl_texture", "", "" ],
+					"patching_rect" : [ 300.0, 92.0, 169.0, 19.0 ],
+					"text" : "jit.gl.node oculus @name world"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-44",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 0,
+					"patcher" : 					{
+						"fileversion" : 1,
+						"appversion" : 						{
+							"major" : 6,
+							"minor" : 1,
+							"revision" : 7,
+							"architecture" : "x86"
+						}
+,
+						"rect" : [ 71.0, 118.0, 721.0, 439.0 ],
+						"bglocked" : 0,
+						"openinpresentation" : 0,
+						"default_fontsize" : 12.0,
+						"default_fontface" : 0,
+						"default_fontname" : "Arial",
+						"gridonopen" : 0,
+						"gridsize" : [ 15.0, 15.0 ],
+						"gridsnaponopen" : 0,
+						"statusbarvisible" : 2,
+						"toolbarvisible" : 1,
+						"boxanimatetime" : 200,
+						"imprint" : 0,
+						"enablehscroll" : 1,
+						"enablevscroll" : 1,
+						"devicewidth" : 0.0,
+						"description" : "",
+						"digest" : "",
+						"tags" : "",
+						"boxes" : [ 							{
+								"box" : 								{
+									"fontname" : "Verdana",
+									"fontsize" : 10.0,
+									"id" : "obj-5",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "jit_matrix", "" ],
+									"patching_rect" : [ 43.0, 280.0, 557.0, 19.0 ],
+									"text" : "jit.gl.gridshape world @shape torus @position -4 0 -4 @depth_enable 1 @blend_enable 1 @material marble",
+									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Verdana",
+									"fontsize" : 10.0,
+									"id" : "obj-4",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "jit_matrix", "" ],
+									"patching_rect" : [ 43.0, 261.0, 552.0, 19.0 ],
+									"text" : "jit.gl.gridshape world @shape torus @position 4 0 -4 @depth_enable 1 @blend_enable 1 @material marble",
+									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Verdana",
+									"fontsize" : 10.0,
+									"id" : "obj-2",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 43.0, 194.0, 172.0, 19.0 ],
+									"text" : "jit.gl.light world @position 0 2 0",
+									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Verdana",
+									"fontsize" : 10.0,
+									"id" : "obj-26",
+									"maxclass" : "newobj",
+									"numinlets" : 8,
+									"numoutlets" : 2,
+									"outlettype" : [ "", "" ],
+									"patching_rect" : [ 43.0, 219.0, 337.0, 19.0 ],
+									"text" : "jit.gl.material world @matfile white.marble.jitmtl @name marble",
+									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Verdana",
+									"fontsize" : 10.0,
+									"id" : "obj-15",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "jit_matrix", "" ],
+									"patching_rect" : [ 43.0, 242.0, 552.0, 19.0 ],
+									"text" : "jit.gl.gridshape world @shape torus @position 0 0 -4 @depth_enable 1 @blend_enable 1 @material marble",
+									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Verdana",
+									"fontsize" : 10.0,
+									"id" : "obj-19",
+									"linecount" : 2,
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "jit_matrix", "" ],
+									"patching_rect" : [ 43.0, 100.0, 570.0, 31.0 ],
+									"text" : "jit.gl.gridshape world @shape opencube @rotate 90 1 0 0 @position 0 0 0 @depth_enable 1 @blend_enable 1 @material rock @scale 50 50 50 @dim 51 51 @poly_mode 1 1",
+									"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+								}
+
+							}
+ ],
+						"lines" : [  ]
+					}
+,
+					"patching_rect" : [ 311.0, 132.0, 48.0, 19.0 ],
+					"saved_object_attributes" : 					{
+						"default_fontface" : 0,
+						"default_fontname" : "Arial",
+						"default_fontsize" : 12.0,
+						"description" : "",
+						"digest" : "",
+						"fontface" : 0,
+						"fontname" : "Arial",
+						"fontsize" : 12.0,
+						"globalpatchername" : "",
+						"tags" : ""
+					}
+,
+					"text" : "p world"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
 					"frgb" : 0.0,
@@ -36,70 +231,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 647.0, 201.0, 150.0, 19.0 ],
-					"presentation_rect" : [ 647.0, 200.0, 0.0, 0.0 ],
+					"patching_rect" : [ 647.0, 206.0, 150.0, 19.0 ],
 					"text" : "Use wider FOV option:"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Verdana",
-					"fontsize" : 10.0,
-					"id" : "obj-26",
-					"maxclass" : "newobj",
-					"numinlets" : 8,
-					"numoutlets" : 2,
-					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 637.5, 92.0, 113.5, 19.0 ],
-					"text" : "jit.gl.material world",
-					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Verdana",
-					"fontsize" : 10.0,
-					"id" : "obj-15",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 300.0, 159.0, 469.0, 19.0 ],
-					"text" : "jit.gl.gridshape world @shape torus @position 0 0 -1.5 @depth_enable 1 @blend_enable 1",
-					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Verdana",
-					"fontsize" : 10.0,
-					"frgb" : 0.0,
-					"id" : "obj-13",
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 300.0, 107.0, 328.0, 19.0 ],
-					"text" : "Here's a ground plane, for example:",
-					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Verdana",
-					"fontsize" : 10.0,
-					"id" : "obj-19",
-					"linecount" : 2,
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 300.0, 124.0, 602.0, 31.0 ],
-					"text" : "jit.gl.gridshape world @shape plane @rotate 90 1 0 0 @position 0 -1.5 0 @scale 50 50 50 @dim 50 50 @poly_mode 1 1 @depth_enable 1 @blend_enable 1",
-					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 				}
 
 			}
@@ -112,7 +245,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 15.0, 92.0, 213.0, 19.0 ],
+					"patching_rect" : [ 15.0, 92.0, 224.0, 19.0 ],
 					"text" : "Graham Wakefield, 2014",
 					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 				}
@@ -128,7 +261,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 758.0, 284.0, 69.0, 31.0 ],
+					"patching_rect" : [ 758.0, 289.0, 69.0, 31.0 ],
 					"text" : "Other messages"
 				}
 
@@ -143,7 +276,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 665.0, 284.0, 93.0, 55.0 ],
+					"patching_rect" : [ 665.0, 289.0, 93.0, 55.0 ],
 					"text" : "Outlet defines right eye mesh, suitable for jit.gl.mesh"
 				}
 
@@ -158,7 +291,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 576.0, 284.0, 82.0, 55.0 ],
+					"patching_rect" : [ 576.0, 289.0, 82.0, 55.0 ],
 					"text" : "Outlet reports right eye configuration parameters"
 				}
 
@@ -173,7 +306,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 490.0, 284.0, 87.0, 55.0 ],
+					"patching_rect" : [ 490.0, 289.0, 87.0, 55.0 ],
 					"text" : "Outlet defines left eye mesh, suitable for jit.gl.mesh"
 				}
 
@@ -188,7 +321,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 402.0, 284.0, 82.0, 55.0 ],
+					"patching_rect" : [ 402.0, 289.0, 82.0, 55.0 ],
 					"text" : "Outlet reports left eye configuration parameters"
 				}
 
@@ -1350,7 +1483,7 @@
  ]
 					}
 ,
-					"patching_rect" : [ 300.0, 400.0, 375.0, 19.0 ],
+					"patching_rect" : [ 300.0, 405.0, 375.0, 19.0 ],
 					"saved_object_attributes" : 					{
 						"default_fontface" : 0,
 						"default_fontname" : "Arial",
@@ -1377,7 +1510,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 300.0, 214.0, 57.0, 17.0 ],
+					"patching_rect" : [ 300.0, 219.0, 57.0, 17.0 ],
 					"text" : "configure"
 				}
 
@@ -1390,7 +1523,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 745.0, 400.0, 69.0, 19.0 ],
+					"patching_rect" : [ 745.0, 405.0, 69.0, 19.0 ],
 					"text" : "print oculus"
 				}
 
@@ -1404,7 +1537,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 214.0, 348.0, 60.0, 17.0 ],
+					"patching_rect" : [ 198.0, 348.0, 60.0, 17.0 ],
 					"text" : "pos 40 45"
 				}
 
@@ -1419,7 +1552,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 357.5, 201.0, 213.0, 43.0 ],
+					"patching_rect" : [ 357.5, 206.0, 213.0, 43.0 ],
 					"text" : "Get the calibration/configuration parameters of the HMD. Happens automatically on creation.",
 					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 				}
@@ -1435,23 +1568,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 311.0, 284.0, 76.0, 104.0 ],
+					"patching_rect" : [ 311.0, 289.0, 76.0, 104.0 ],
 					"text" : "First outlet reports HMD orientation (predicted) as a \"quat\" message suitable for jit.anim.node"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Verdana",
-					"fontsize" : 10.0,
-					"frgb" : 0.0,
-					"id" : "obj-21",
-					"linecount" : 3,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 300.0, 25.0, 487.0, 43.0 ],
-					"text" : "Use a jit.gl.node to render the scene twice into offscreen textures, once for each eye. All objects in the scene must be created in the jit.gl.node context (\"world\"), not the jit.window context (\"oculus\"). Stereoscopic rendering assumes that 1 world unit == 1 meter. "
 				}
 
 			}
@@ -1465,7 +1583,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 108.0, 159.0, 145.0, 31.0 ],
+					"patching_rect" : [ 92.0, 159.0, 145.0, 31.0 ],
 					"text" : "Should be 60fps or better \nto prevent nausea"
 				}
 
@@ -1502,26 +1620,12 @@
 				"box" : 				{
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
-					"id" : "obj-10",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "jit_gl_texture", "", "" ],
-					"patching_rect" : [ 300.0, 71.0, 169.0, 19.0 ],
-					"text" : "jit.gl.node oculus @name world"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Verdana",
-					"fontsize" : 10.0,
 					"id" : "obj-9",
 					"maxclass" : "jit.fpsgui",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 125.0, 201.0, 80.0, 35.0 ]
+					"patching_rect" : [ 109.0, 201.0, 80.0, 35.0 ]
 				}
 
 			}
@@ -1535,7 +1639,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 6,
 					"outlettype" : [ "list", "", "jit_matrix", "", "jit_matrix", "" ],
-					"patching_rect" : [ 300.0, 254.0, 464.0, 24.0 ],
+					"patching_rect" : [ 300.0, 259.0, 464.0, 24.0 ],
 					"text" : "oculus"
 				}
 
@@ -1549,7 +1653,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 31.0, 348.0, 81.0, 17.0 ],
+					"patching_rect" : [ 15.0, 348.0, 81.0, 17.0 ],
 					"text" : "fullscreen $1"
 				}
 
@@ -1562,7 +1666,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 31.0, 321.0, 20.0, 20.0 ]
+					"patching_rect" : [ 15.0, 321.0, 20.0, 20.0 ]
 				}
 
 			}
@@ -1664,7 +1768,7 @@
  ]
 					}
 ,
-					"patching_rect" : [ 53.5, 321.0, 41.0, 19.0 ],
+					"patching_rect" : [ 37.5, 321.0, 41.0, 19.0 ],
 					"saved_object_attributes" : 					{
 						"default_fontface" : 0,
 						"default_fontname" : "Arial",
@@ -1692,7 +1796,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "bang", "" ],
-					"patching_rect" : [ 31.0, 375.0, 178.0, 31.0 ],
+					"patching_rect" : [ 15.0, 375.0, 178.0, 31.0 ],
 					"text" : "jit.window oculus @size 640 400 @sync 1 @fsmenubar 0"
 				}
 
@@ -1705,7 +1809,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 31.0, 142.0, 20.0, 20.0 ]
+					"patching_rect" : [ 15.0, 142.0, 20.0, 20.0 ]
 				}
 
 			}
@@ -1718,7 +1822,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 31.0, 170.0, 64.0, 19.0 ],
+					"patching_rect" : [ 15.0, 170.0, 64.0, 19.0 ],
 					"text" : "qmetro 15"
 				}
 
@@ -1732,7 +1836,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "bang", "" ],
-					"patching_rect" : [ 31.0, 266.0, 220.0, 19.0 ],
+					"patching_rect" : [ 15.0, 266.0, 220.0, 19.0 ],
 					"text" : "jit.gl.render oculus @erase_color 0 0 0 1."
 				}
 
@@ -1746,7 +1850,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "bang", "bang", "erase" ],
-					"patching_rect" : [ 31.0, 221.0, 68.0, 19.0 ],
+					"patching_rect" : [ 15.0, 221.0, 68.0, 19.0 ],
 					"text" : "t b b erase"
 				}
 
@@ -1767,7 +1871,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 53.5, 142.0, 20.0, 20.0 ],
+					"patching_rect" : [ 37.5, 142.0, 20.0, 20.0 ],
 					"rounded" : 60.0,
 					"text" : "1",
 					"textcolor" : [ 0.34902, 0.34902, 0.34902, 1.0 ],
@@ -1786,7 +1890,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 125.0, 348.0, 78.0, 19.0 ],
+					"patching_rect" : [ 109.0, 348.0, 78.0, 19.0 ],
 					"text_width" : 50.0
 				}
 
@@ -1801,7 +1905,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 647.0, 221.0, 150.0, 19.0 ]
+					"patching_rect" : [ 647.0, 226.0, 150.0, 19.0 ]
 				}
 
 			}
@@ -1907,19 +2011,10 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-15", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
-					"source" : [ "obj-26", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
 					"disabled" : 0,
 					"hidden" : 0,
-					"midpoints" : [ 656.5, 248.0, 309.5, 248.0 ],
+					"midpoints" : [ 656.5, 253.0, 309.5, 253.0 ],
 					"source" : [ "obj-27", 0 ]
 				}
 
@@ -1938,7 +2033,7 @@
 					"destination" : [ "obj-1", 0 ],
 					"disabled" : 0,
 					"hidden" : 0,
-					"midpoints" : [ 65.0, 253.0, 309.5, 253.0 ],
+					"midpoints" : [ 49.0, 253.0, 309.5, 253.0 ],
 					"source" : [ "obj-3", 1 ]
 				}
 
@@ -1975,7 +2070,7 @@
 					"destination" : [ "obj-9", 0 ],
 					"disabled" : 0,
 					"hidden" : 0,
-					"midpoints" : [ 40.5, 193.0, 134.5, 193.0 ],
+					"midpoints" : [ 24.5, 193.0, 118.5, 193.0 ],
 					"source" : [ "obj-5", 0 ]
 				}
 

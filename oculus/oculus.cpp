@@ -94,7 +94,7 @@ public:
 		}
 				
 		// release library nicely
-		libcount--;
+		//libcount--; // was crashy
 		if (libcount == 0) {
 			ovr_Shutdown();
 		}
