@@ -3,7 +3,9 @@
 	oculus - a max object
 */
 
+#ifdef __cplusplus 
 extern "C" {
+#endif
 	#include "ext.h"		
 	#include "ext_obex.h"
 
@@ -11,7 +13,9 @@ extern "C" {
 
 	#include "jit.common.h"
 	#include "jit.gl.h"
+#ifdef __cplusplus 
 }
+#endif
 
 #include <new>
 
