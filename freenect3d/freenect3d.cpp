@@ -12,6 +12,7 @@ extern "C" {
 	#include "ext_obex.h"
 	#include "ext_dictionary.h"
 	#include "ext_dictobj.h"
+	#include "ext_systhread.h"
 
 	#include "z_dsp.h"
 
@@ -21,7 +22,8 @@ extern "C" {
 	#include "libfreenect.h"
 }
 
-#include <pthread.h>
+
+//#include <pthread.h>
 #include <new>
 
 #define DEPTH_WIDTH 640
@@ -35,7 +37,7 @@ extern "C" {
 t_class *freenect3d_class;
 
 freenect_context * f_ctx = NULL;
-pthread_t capture_thread;	// Windows?
+t_systhread capture_thread;	// Windows?
 int capturing = 0;
 
 char bundle_path[MAX_PATH_CHARS];
@@ -312,16 +314,15 @@ public:
 		// mark one additional device:
 		capturing++;
 		
-		post("open thread %p", pthread_self());
-		
 		if(!f_ctx){
-			if (pthread_create(&capture_thread, NULL, capture_threadfunc, this)) {
+			long priority = 0; // maybe increase?
+			if (systhread_create((method)&capture_threadfunc, this, 0, priority, 0, &capture_thread)) {
 				object_error(&ob, "Failed to create capture thread.");
 				capturing = 0;
 				return;
 			}
 			while(!f_ctx){
-				sleep(0);
+				systhread_sleep(0);
 			}
 		}
 		
@@ -580,9 +581,6 @@ public:
 	}
 	
 	static void depth_callback(freenect_device *dev, void *pixels, uint32_t timestamp){
-		static int once = 1;
-		if (once) { post("depth thread %p", pthread_self()); once = 0; }
-		
 		t_freenect3d *x = (t_freenect3d *)freenect_get_user(dev);
 		if(!x)return;
 		
@@ -631,14 +629,14 @@ public:
 				error("Freenect could not process events.");
 				break;
 			}
-			sleep(0);
+			systhread_sleep(0);
 		}
 		post("freenect finished processing");
 		
 	out: 
 		freenect_shutdown(f_ctx);
 		f_ctx = NULL;
-		pthread_exit(NULL);
+		systhread_exit(NULL);
 		return NULL;
 	}
 };
