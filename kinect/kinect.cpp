@@ -1,24 +1,17 @@
-
 #ifdef __APPLE__
 	#include "CoreFoundation/CoreFoundation.h"
-	
-    #define MY_PLUGIN_BUNDLE_IDENTIFIER "com.cycling74.kinect"
-	
+    
+	// use the libfreenect library/driver:
 	#include "MaxFreenect.h"
-	
 #else
-	//#include "MaxFreenect.h"
+	// use the Windows Kinect SDK library/driver:
 	#include "MaxK4W.h"
-
 #endif
 
-
+#define MY_PLUGIN_BUNDLE_IDENTIFIER "com.cycling74.kinect"
+	
 t_class *kinect_class;
 char bundle_path[MAX_PATH_CHARS];
-
-void kinect_bang(t_kinect * x) {
-	x->bang();
-}
 
 // object_notify
 t_max_err kinect_notify(t_kinect *x, t_symbol *s, t_symbol *msg, void *sender, void *data) {
@@ -32,18 +25,6 @@ t_max_err kinect_notify(t_kinect *x, t_symbol *s, t_symbol *msg, void *sender, v
 	}
 
 	return 0;
-}
-
-void kinect_getdevlist(t_kinect *x) {
-	x->getdevlist();
-}
-
-void kinect_led(t_kinect *x, int option) {
-	x->led(option);
-}
-
-void kinect_accel(t_kinect *x) {
-	x->accel();
 }
 
 void kinect_assist(t_kinect *x, void *b, long m, long a, char *s)
@@ -74,10 +55,13 @@ void kinect_depth_map(t_kinect *x, t_symbol *s, long argc, t_atom *argv) {
 	}
 }
 
-void kinect_dictionary(t_kinect *x, t_symbol *s, long argc, t_atom *argv) {
-	x->dictionary(s, argc, argv);
+void kinect_bang(t_kinect * x) {
+	x->bang();
 }
 
+void kinect_dictionary(t_kinect *x, t_symbol *s, long argc, t_atom *argv) { 
+	x->dictionary(s, argc, argv); 
+}
 
 void kinect_open(t_kinect *x, t_symbol *s, long argc, t_atom *argv) {
 	x->open(s, argc, argv);
@@ -85,6 +69,18 @@ void kinect_open(t_kinect *x, t_symbol *s, long argc, t_atom *argv) {
 
 void kinect_close(t_kinect *x) {
 	x->close();
+}
+
+void kinect_getdevlist(t_kinect *x) {
+	x->getdevlist();
+}
+
+void kinect_led(t_kinect *x, int option) {
+	x->led(option);
+}
+
+void kinect_accel(t_kinect *x) {
+	x->accel();
 }
 
 void *kinect_new(t_symbol *s, long argc, t_atom *argv)
@@ -101,11 +97,11 @@ void *kinect_new(t_symbol *s, long argc, t_atom *argv)
 		x->outlet_depth = outlet_new(x, "jit_matrix");
 		x->outlet_cloud = outlet_new(x, "jit_matrix");
 		
-		// default attrs:
-		//kinect_getdevlist(x);
-		
 		// apply attrs:
 		attr_args_process(x, argc, argv);
+		
+		// default attrs:
+		kinect_getdevlist(x);
 	}
 	return (x);
 }
@@ -128,7 +124,7 @@ int C74_EXPORT main(void) {
 		}
 		CFRelease(resourcesURL);
 		
-		printf("bundle path %s\n", bundle_path);
+		//printf("bundle path %s\n", bundle_path);
 	#endif
 	
 	maxclass = class_new("kinect", (method)kinect_new, (method)kinect_free, (long)sizeof(t_kinect), 0L, A_GIMME, 0);
