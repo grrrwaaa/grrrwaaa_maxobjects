@@ -607,6 +607,9 @@ public:
 			}
 		}
 		f_ctx = context;
+
+		int devs = freenect_num_devices(f_ctx);
+		post("%d devices detected", devs);
 				
 		freenect_set_log_callback(f_ctx, log_cb);
 //		FREENECT_LOG_FATAL = 0,     /**< Log for crashing/non-recoverable errors */
