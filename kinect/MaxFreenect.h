@@ -5,6 +5,8 @@ extern "C" {
 }
 
 freenect_context * f_ctx = NULL;
+t_systhread capture_thread;	
+int capturing = 0;
 
 class t_kinect : public MaxKinectBase {
 public:
@@ -12,19 +14,11 @@ public:
 	// freenect:
 	freenect_device  *device;
 	
-	volatile char new_rgb_data;
-	volatile char new_depth_data;
-	volatile char new_cloud_data;
-	
 	// internal data:
 	uint16_t *	depth_data;
 		
 	t_kinect() {	
 		device = 0;
-		
-		new_rgb_data = 0;
-		new_depth_data = 0;
-		new_cloud_data = 0;
 			
 		// depth buffer doesn't use a jit_matrix, because uint16_t is not a Jitter type:
 		depth_data = (uint16_t *)sysmem_newptr(DEPTH_WIDTH*DEPTH_HEIGHT * sizeof(uint16_t));
@@ -123,7 +117,8 @@ public:
 		freenect_set_depth_buffer(device, depth_data);
 		
 		freenect_set_video_mode(device, freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB));
-		freenect_set_depth_mode(device, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_11BIT));
+		//freenect_set_depth_mode(device, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_11BIT));
+		freenect_set_depth_mode(device, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_MM));
 		
 		freenect_set_led(device,LED_RED);
 		
@@ -195,53 +190,15 @@ public:
 	}
 	
 	void depth_process() {
-		float inv_depth_focal_x = 1./depth_focal.x;
-		float inv_depth_focal_y = 1./depth_focal.y;
-	
 		// for each cell:
-		for (int i=0, y=0; y<DEPTH_HEIGHT; y++) {
-			for (int x=0; x<DEPTH_WIDTH; x++, i++) {
-				
-				// cache raw, unrectified depth in output:
-				// (casts uint16_t to uint32_t)
-				depth_back[i] = depth_data[i];
-				
-				// remove the effects of lens distortion
-				// (lookup into distortion map)
-				vec2i di = depth_map_data[i];
-				uint16_t d = depth_data[di.x + di.y*DEPTH_WIDTH];
-				
-				// Of course this isn't optimal; actually we should be doing the reverse, 
-				// i.e. converting cell index to match the distortion. 
-				// But it's not trivial to invert the lens distortion.
-				
-				//if (d < 2047) {
-					// convert pixel coordinate to NDC depth plane intersection
-					float uv_x = (x - depth_center.x) * inv_depth_focal_x;
-					float uv_y = (y - depth_center.y) * inv_depth_focal_y;
-					
-					// convert Kinect depth to Z
-					// NOTE: this should be cached into a lookup table
-					// TODO: what are these magic numbers? the result is meters
-					float z = 540 * 8 * depth_base / (depth_offset - d);
-					
-					// and scale according to depth (projection)
-					uv_x = uv_x * z;
-					uv_y = uv_y * z;
-					
-					// flip for GL:
-					cloud_back[i].x = uv_x;
-					cloud_back[i].y = -uv_y;
-					cloud_back[i].z = -z;
-					
-				//} else {
-//				
-//					cloud_back[i].x = 0;
-//					cloud_back[i].y = 0;
-//					cloud_back[i].z = 0;
-//				}
-			}
+		for (int i=0; i<DEPTH_HEIGHT*DEPTH_WIDTH; i++) {
+			// cache raw, unrectified depth in output:
+			// (casts uint16_t to uint32_t)
+			depth_back[i] = depth_data[i];
 		}
+		new_depth_data = 1;
+		
+		cloud_process();
 	}
 	
 	static void rgb_callback(freenect_device *dev, void *pixels, uint32_t timestamp){
@@ -257,9 +214,6 @@ public:
 		
 		// consider moving this to another thread to avoid dropouts?
 		x->depth_process();
-		
-		x->new_depth_data = 1;
-		x->new_cloud_data = 1;
 	}
 	
 	static void log_cb(freenect_context *dev, freenect_loglevel level, const char *msg) {

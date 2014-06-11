@@ -39,6 +39,7 @@ t_class *freenect3d_class;
 freenect_context * f_ctx = NULL;
 t_systhread capture_thread;	// Windows?
 int capturing = 0;
+int device_count;
 
 char bundle_path[MAX_PATH_CHARS];
 
@@ -608,8 +609,8 @@ public:
 		}
 		f_ctx = context;
 
-		int devs = freenect_num_devices(f_ctx);
-		post("%d devices detected", devs);
+		device_count = freenect_num_devices(f_ctx);
+		post("%d devices detected", device_count);
 				
 		freenect_set_log_callback(f_ctx, log_cb);
 //		FREENECT_LOG_FATAL = 0,     /**< Log for crashing/non-recoverable errors */

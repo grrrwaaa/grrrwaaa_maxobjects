@@ -23,9 +23,6 @@ extern "C" {
 #define DEPTH_WIDTH 640
 #define DEPTH_HEIGHT 480
 
-t_systhread capture_thread;	
-int capturing = 0;
-
 class MaxKinectBase {
 public:
 
@@ -63,19 +60,31 @@ public:
 	vec2f		depth_center;
 	float		depth_base, depth_offset;
 	int			unique;
+	int			device_count;
+	int			near_mode, player;
 	
 	vec2i *		depth_map_data;
 	
+	volatile char new_rgb_data;
+	volatile char new_depth_data;
+	volatile char new_cloud_data;
+	
 	MaxKinectBase() {
 		unique = 1;
+		device_count = 0;
+		near_mode = player = 0;
+		
+		new_rgb_data = 0;
+		new_depth_data = 0;
+		new_cloud_data = 0;
 		
 		// can we accept a dict?
-		depth_base = 0.085;
-		depth_offset = 0.0011;
-		depth_center.x = 314;
-		depth_center.y = 241;
-		depth_focal.x = 597;
-		depth_focal.y = 597;
+		depth_base = 0.085f;
+		depth_offset = 0.0011f;
+		depth_center.x = 314.f;
+		depth_center.y = 241.f;
+		depth_focal.x = 597.f;
+		depth_focal.y = 597.f;
 		
 		// create matrices:
 		t_jit_matrix_info info;
@@ -205,10 +214,10 @@ public:
 				
 				//post("%i %i: %i %f %f", x, y, i, v.x, v.y);
 			
-				// scale up to depth dim and store:
-				// TODO: should there be a +0.5 for rounding?
-				depth_map_data[i].x = v.x * DEPTH_WIDTH;
-				depth_map_data[i].y = v.y * DEPTH_HEIGHT;
+				// store:
+				// TODO: should we +0.5 before rounding by int, or not?
+				depth_map_data[i].x = (int)(v.x + 0.5);
+				depth_map_data[i].y = (int)(v.y + 0.5);
 				
 				// move to next column:
 				ip += in_info.dimstride[0];
@@ -224,7 +233,56 @@ public:
 		}
 	}
 	
+	void cloud_process() {
+		float inv_depth_focal_x = 1./depth_focal.x;
+		float inv_depth_focal_y = 1./depth_focal.y;
 	
+		// for each cell:
+		for (int i=0, y=0; y<DEPTH_HEIGHT; y++) {
+			for (int x=0; x<DEPTH_WIDTH; x++, i++) {
+				
+				// remove the effects of lens distortion
+				// (lookup into distortion map)
+				vec2i di = depth_map_data[i];
+				uint16_t d = depth_back[di.x + di.y*DEPTH_WIDTH];
+				
+				// Of course this isn't optimal; actually we should be doing the reverse, 
+				// i.e. converting cell index to match the distortion. 
+				// But it's not trivial to invert the lens distortion.
+				
+				//if (d < 2047) {
+					// convert pixel coordinate to NDC depth plane intersection
+					float uv_x = (x - depth_center.x) * inv_depth_focal_x;
+					float uv_y = (y - depth_center.y) * inv_depth_focal_y;
+					
+					// convert Kinect depth to Z
+					// NOTE: this should be cached into a lookup table
+					// TODO: what are these magic numbers? the result is meters
+					//float z = 540 * 8 * depth_base / (depth_offset - d);
+					
+					// using Kinect's mm data directly:
+					float z = d * 0.001f;
+					
+					// and scale according to depth (projection)
+					uv_x = uv_x * z;
+					uv_y = uv_y * z;
+					
+					// flip for GL:
+					cloud_back[i].x = uv_x;
+					cloud_back[i].y = -uv_y;
+					cloud_back[i].z = -z;
+					
+				//} else {
+//				
+//					cloud_back[i].x = 0;
+//					cloud_back[i].y = 0;
+//					cloud_back[i].z = 0;
+//				}
+			}
+		}
+		
+		new_cloud_data = 1;
+	}
 	
 	void dictionary(t_symbol *s, long argc, t_atom *argv) {
 		
