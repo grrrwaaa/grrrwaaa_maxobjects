@@ -6,14 +6,12 @@
 	<param name="R1" type="vec3" default="1. 0. 0." />
 	<param name="R2" type="vec3" default="0. 1. 0." />
 	<param name="R3" type="vec3" default="0. 0. 1." />
+	<param name="R" type="mat3" default="1. 0. 0. 0. 1. 0. 0. 0. 1." />
 	
 	<language name="glsl" version="1.0">
 		<bind param="rgb_map" program="vp" />
 		<bind param="T" program="vp" />
-		<bind param="R1" program="vp" />
-		<bind param="R2" program="vp" />
-		<bind param="R3" program="vp" />
-		
+		<bind param="R" program="vp" />
 		<bind param="rgb" program="fp" />
 
 		<program name="vp" type="vertex">
@@ -25,7 +23,8 @@ varying vec2 texcoord0;
 
 uniform sampler2D rgb_map;
 
-uniform vec3 T, R1, R2, R3;
+uniform vec3 T;
+uniform mat3 R;
 
 vec2 dim = vec2(640, 480);
 
@@ -36,11 +35,8 @@ void main() {
 	vec3 v = vec3(vertex.x, -vertex.y, -vertex.z);
 	
 	// first, move the point into the RGB camera's perspective:
-	vec3 v1 = v - T; 
+	vec3 v2 = R * (v - T);
 	
-	// rotation
-	vec3 v2 = R1*v1.x + R2*v1.y + R3*v1.z;
-
 	// next remove depth (vec2)
 	// v3 is the location of the 3D depth point on the RGB image plane:
 	vec2 ndc = v2.xy / v2.z;
@@ -52,9 +48,7 @@ void main() {
 	vec2 t = 0.5 + ndc;
 	
 	// now get warped texture coordinate from the map:
-	t = texture2D(rgb_map, t).xy;
-	
-	texcoord0 = t;
+	texcoord0 = texture2D(rgb_map, t).xy;
 	
 	gl_Position = gl_ModelViewProjectionMatrix * vertex; //ftransform();
 }

@@ -19,12 +19,16 @@ extern "C" {
 }
 
 #include <new>
+#include "stdint.h"
 
 #define DEPTH_WIDTH 640
 #define DEPTH_HEIGHT 480
 
-t_systhread capture_thread;	
-int capturing = 0;
+#ifdef __APPLE__
+	#define COLOR_PLANES 3
+#else
+	#define COLOR_PLANES 3
+#endif
 
 class MaxKinectBase {
 public:
@@ -63,19 +67,34 @@ public:
 	vec2f		depth_center;
 	float		depth_base, depth_offset;
 	int			unique;
+	int			device_count;
+	int			near_mode;
+	int			player;
 	
 	vec2i *		depth_map_data;
 	
+	volatile char new_rgb_data;
+	volatile char new_depth_data;
+	volatile char new_cloud_data;
+	
 	MaxKinectBase() {
+		// set up attrs:
 		unique = 1;
+		near_mode = 0;
+		device_count = 0;
+		player = 0;
+		
+		new_rgb_data = 0;
+		new_depth_data = 0;
+		new_cloud_data = 0;
 		
 		// can we accept a dict?
-		depth_base = 0.085;
-		depth_offset = 0.0011;
-		depth_center.x = 314;
-		depth_center.y = 241;
-		depth_focal.x = 597;
-		depth_focal.y = 597;
+		depth_base = 0.085f;
+		depth_offset = 0.0011f;
+		depth_center.x = 314.f;
+		depth_center.y = 241.f;
+		depth_focal.x = 597.f;
+		depth_focal.y = 597.f;
 		
 		// create matrices:
 		t_jit_matrix_info info;
@@ -85,7 +104,7 @@ public:
 		// create the internal data:
 		jit_matrix_info_default(&info);
 		info.flags |= JIT_MATRIX_DATA_PACK_TIGHT;
-		info.planecount = 3;
+		info.planecount = COLOR_PLANES;
 		info.type = gensym("char");
 		info.dimcount = 2;
 		info.dim[0] = DEPTH_WIDTH;
@@ -207,8 +226,8 @@ public:
 			
 				// scale up to depth dim and store:
 				// TODO: should there be a +0.5 for rounding?
-				depth_map_data[i].x = v.x * DEPTH_WIDTH;
-				depth_map_data[i].y = v.y * DEPTH_HEIGHT;
+				depth_map_data[i].x = (int)(v.x * DEPTH_WIDTH);
+				depth_map_data[i].y = (int)(v.y * DEPTH_HEIGHT);
 				
 				// move to next column:
 				ip += in_info.dimstride[0];
@@ -224,7 +243,76 @@ public:
 		}
 	}
 	
+	void bang() {
+		if (unique) {
+			if (new_rgb_data) {
+				new_rgb_data = 0;
+				outlet_anything(outlet_rgb  , _jit_sym_jit_matrix, 1, rgb_name  );
+			}
+			if (new_depth_data) {
+				new_depth_data = 0;
+				outlet_anything(outlet_depth, _jit_sym_jit_matrix, 1, depth_name);
+			}
+			if (new_cloud_data) {
+				new_cloud_data = 0;
+				outlet_anything(outlet_cloud, _jit_sym_jit_matrix, 1, cloud_name);
+			}
+		} else {
+			outlet_anything(outlet_rgb  , _jit_sym_jit_matrix, 1, rgb_name  );
+			outlet_anything(outlet_depth, _jit_sym_jit_matrix, 1, depth_name);
+			outlet_anything(outlet_cloud, _jit_sym_jit_matrix, 1, cloud_name);
+		}
+
+	}
 	
+	void cloud_process() {
+		float inv_depth_focal_x = 1.f/depth_focal.x;
+		float inv_depth_focal_y = 1.f/depth_focal.y;
+	
+		// for each cell:
+		for (int i=0, y=0; y<DEPTH_HEIGHT; y++) {
+			for (int x=0; x<DEPTH_WIDTH; x++, i++) {
+				
+				// remove the effects of lens distortion
+				// (lookup into distortion map)
+				vec2i di = depth_map_data[i];
+				uint16_t d = depth_back[di.x + di.y*DEPTH_WIDTH];
+				
+				// Of course this isn't optimal; actually we should be doing the reverse, 
+				// i.e. converting cell index to match the distortion. 
+				// But it's not trivial to invert the lens distortion.
+				
+				//if (d < 2047) {
+					// convert pixel coordinate to NDC depth plane intersection
+					float uv_x = (x - depth_center.x) * inv_depth_focal_x;
+					float uv_y = (y - depth_center.y) * inv_depth_focal_y;
+					
+					// convert Kinect depth to Z
+					// NOTE: this should be cached into a lookup table
+					// TODO: what are these magic numbers? the result is meters
+					// this was to convert raw disparity to meters
+					//float z = 540 * 8 * depth_base / (depth_offset - d);
+					float z = d * 0.001f;
+
+					// and scale according to depth (projection)
+					uv_x = uv_x * z;
+					uv_y = uv_y * z;
+					
+					// flip for GL:
+					cloud_back[i].x = uv_x;
+					cloud_back[i].y = -uv_y;
+					cloud_back[i].z = -z;
+					
+				//} else {
+//				
+//					cloud_back[i].x = 0;
+//					cloud_back[i].y = 0;
+//					cloud_back[i].z = 0;
+//				}
+			}
+		}
+		new_cloud_data = 1;
+	}
 	
 	void dictionary(t_symbol *s, long argc, t_atom *argv) {
 		
@@ -232,7 +320,7 @@ public:
 		long			numkeys = 0;
 		t_symbol		**keys = NULL;
 		int				i;
-		int				size;
+//		int				size;
 
 		if (!d) {
 			object_error(&ob, "unable to reference dictionary named %s", s);

@@ -271,6 +271,11 @@
     <ClCompile Include="..\..\..\c74support\max-includes\common\commonsyms.c" />
     <ClCompile Include="kinect.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MaxFreenect.h" />
+    <ClInclude Include="MaxK4W.h" />
+    <ClInclude Include="MaxKinectBase.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
