@@ -19,6 +19,7 @@ extern "C" {
 }
 
 #include <new>
+#include "stdint.h"
 
 #define DEPTH_WIDTH 640
 #define DEPTH_HEIGHT 480
@@ -61,7 +62,8 @@ public:
 	float		depth_base, depth_offset;
 	int			unique;
 	int			device_count;
-	int			near_mode, player;
+	int			near_mode;
+	int			player;
 	
 	vec2i *		depth_map_data;
 	
@@ -70,9 +72,11 @@ public:
 	volatile char new_cloud_data;
 	
 	MaxKinectBase() {
+		// set up attrs:
 		unique = 1;
+		near_mode = 0;
 		device_count = 0;
-		near_mode = player = 0;
+		player = 0;
 		
 		new_rgb_data = 0;
 		new_depth_data = 0;
@@ -94,7 +98,7 @@ public:
 		// create the internal data:
 		jit_matrix_info_default(&info);
 		info.flags |= JIT_MATRIX_DATA_PACK_TIGHT;
-		info.planecount = 3;
+		info.planecount = COLOR_PLANES;
 		info.type = gensym("char");
 		info.dimcount = 2;
 		info.dim[0] = DEPTH_WIDTH;
@@ -214,10 +218,10 @@ public:
 				
 				//post("%i %i: %i %f %f", x, y, i, v.x, v.y);
 			
-				// store:
-				// TODO: should we +0.5 before rounding by int, or not?
-				depth_map_data[i].x = (int)(v.x + 0.5);
-				depth_map_data[i].y = (int)(v.y + 0.5);
+				// scale up to depth dim and store:
+				// TODO: should there be a +0.5 for rounding?
+				depth_map_data[i].x = (int)(v.x * DEPTH_WIDTH);
+				depth_map_data[i].y = (int)(v.y * DEPTH_HEIGHT);
 				
 				// move to next column:
 				ip += in_info.dimstride[0];
@@ -233,9 +237,32 @@ public:
 		}
 	}
 	
+<<<<<<< HEAD
+	void bang() {
+		if (unique) {
+			if (new_rgb_data) {
+				new_rgb_data = 0;
+				outlet_anything(outlet_rgb  , _jit_sym_jit_matrix, 1, rgb_name  );
+			}
+			if (new_depth_data) {
+				new_depth_data = 0;
+				outlet_anything(outlet_depth, _jit_sym_jit_matrix, 1, depth_name);
+			}
+			if (new_cloud_data) {
+				new_cloud_data = 0;
+				outlet_anything(outlet_cloud, _jit_sym_jit_matrix, 1, cloud_name);
+			}
+		} else {
+			outlet_anything(outlet_rgb  , _jit_sym_jit_matrix, 1, rgb_name  );
+			outlet_anything(outlet_depth, _jit_sym_jit_matrix, 1, depth_name);
+			outlet_anything(outlet_cloud, _jit_sym_jit_matrix, 1, cloud_name);
+		}
+
+	}
+	
 	void cloud_process() {
-		float inv_depth_focal_x = 1./depth_focal.x;
-		float inv_depth_focal_y = 1./depth_focal.y;
+		float inv_depth_focal_x = 1.f/depth_focal.x;
+		float inv_depth_focal_y = 1.f/depth_focal.y;
 	
 		// for each cell:
 		for (int i=0, y=0; y<DEPTH_HEIGHT; y++) {
@@ -257,12 +284,11 @@ public:
 					
 					// convert Kinect depth to Z
 					// NOTE: this should be cached into a lookup table
-					// TODO: what are these magic numbers? the result is meters
-					//float z = 540 * 8 * depth_base / (depth_offset - d);
+					// TODO: what are these magic numbers? the result is meters					
 					
-					// using Kinect's mm data directly:
+					// convert raw disparity to meters
 					float z = d * 0.001f;
-					
+
 					// and scale according to depth (projection)
 					uv_x = uv_x * z;
 					uv_y = uv_y * z;
@@ -280,7 +306,6 @@ public:
 //				}
 			}
 		}
-		
 		new_cloud_data = 1;
 	}
 	
@@ -290,7 +315,7 @@ public:
 		long			numkeys = 0;
 		t_symbol		**keys = NULL;
 		int				i;
-		int				size;
+//		int				size;
 
 		if (!d) {
 			object_error(&ob, "unable to reference dictionary named %s", s);

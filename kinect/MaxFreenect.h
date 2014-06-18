@@ -8,6 +8,9 @@ freenect_context * f_ctx = NULL;
 t_systhread capture_thread;	
 int capturing = 0;
 
+t_systhread capture_thread;	
+int capturing = 0;
+
 class t_kinect : public MaxKinectBase {
 public:
 
@@ -117,7 +120,10 @@ public:
 		freenect_set_depth_buffer(device, depth_data);
 		
 		freenect_set_video_mode(device, freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB));
+<<<<<<< HEAD
+=======
 		//freenect_set_depth_mode(device, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_11BIT));
+>>>>>>> d1d21feb3bc54444f7b37785d9eb57e1bbcb85f5
 		freenect_set_depth_mode(device, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_MM));
 		
 		freenect_set_led(device,LED_RED);
@@ -167,37 +173,23 @@ public:
 		freenect_set_led(device, (freenect_led_options)option);
 	}
 	
-	void bang() {
-		if (unique) {
-			if (new_rgb_data) {
-				new_rgb_data = 0;
-				outlet_anything(outlet_rgb  , _jit_sym_jit_matrix, 1, rgb_name  );
-			}
-			if (new_depth_data) {
-				new_depth_data = 0;
-				outlet_anything(outlet_depth, _jit_sym_jit_matrix, 1, depth_name);
-			}
-			if (new_cloud_data) {
-				new_cloud_data = 0;
-				outlet_anything(outlet_cloud, _jit_sym_jit_matrix, 1, cloud_name);
-			}
-		} else {
-			outlet_anything(outlet_rgb  , _jit_sym_jit_matrix, 1, rgb_name  );
-			outlet_anything(outlet_depth, _jit_sym_jit_matrix, 1, depth_name);
-			outlet_anything(outlet_cloud, _jit_sym_jit_matrix, 1, cloud_name);
-		}
-
-	}
-	
 	void depth_process() {
+<<<<<<< HEAD
+		for (int i=0; i<DEPTH_WIDTH*DEPTH_HEIGHT; i++) {
+=======
 		// for each cell:
 		for (int i=0; i<DEPTH_HEIGHT*DEPTH_WIDTH; i++) {
+>>>>>>> d1d21feb3bc54444f7b37785d9eb57e1bbcb85f5
 			// cache raw, unrectified depth in output:
 			// (casts uint16_t to uint32_t)
 			depth_back[i] = depth_data[i];
 		}
 		new_depth_data = 1;
+<<<<<<< HEAD
+
+=======
 		
+>>>>>>> d1d21feb3bc54444f7b37785d9eb57e1bbcb85f5
 		cloud_process();
 	}
 	

@@ -3,11 +3,10 @@
 	<param name="R" type="mat3" default="1. 0. 0. 0. 1. 0. 0. 0. 1." />
 	<param name="rgb" type="int" default="0" />
 	<param name="rgb_map" type="int" default="1" />
-	
 	<language name="glsl" version="1.0">
 		<bind param="T" program="vp" />
 		<bind param="R" program="vp" />
-		<bind param="rgb_map" program="vp" />
+
 		<bind param="rgb" program="fp" />
 
 		<program name="vp" type="vertex">
@@ -26,6 +25,7 @@ void main() {
 	// convert to RGBDemo system:
 	vec3 v = vec3(gl_Vertex.x, -gl_Vertex.y, -gl_Vertex.z);
 	
+
 	// move the point into the RGB camera's perspective:
 	vec3 v2 = R * (v - T);
 	
