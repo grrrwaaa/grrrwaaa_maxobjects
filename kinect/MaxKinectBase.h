@@ -24,12 +24,6 @@ extern "C" {
 #define DEPTH_WIDTH 640
 #define DEPTH_HEIGHT 480
 
-#ifdef __APPLE__
-	#define COLOR_PLANES 3
-#else
-	#define COLOR_PLANES 3
-#endif
-
 class MaxKinectBase {
 public:
 
@@ -243,6 +237,7 @@ public:
 		}
 	}
 	
+<<<<<<< HEAD
 	void bang() {
 		if (unique) {
 			if (new_rgb_data) {
@@ -289,9 +284,9 @@ public:
 					
 					// convert Kinect depth to Z
 					// NOTE: this should be cached into a lookup table
-					// TODO: what are these magic numbers? the result is meters
-					// this was to convert raw disparity to meters
-					//float z = 540 * 8 * depth_base / (depth_offset - d);
+					// TODO: what are these magic numbers? the result is meters					
+					
+					// convert raw disparity to meters
 					float z = d * 0.001f;
 
 					// and scale according to depth (projection)
