@@ -1,0 +1,4 @@
+LIBRARY aruco.mxe
+
+EXPORTS
+	main
