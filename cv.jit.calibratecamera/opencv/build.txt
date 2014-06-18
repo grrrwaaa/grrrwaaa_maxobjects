@@ -1,0 +1,19 @@
+
+# build opencv
+
+
+mkdir build64
+cd build64
+rm CMakeCache.txt
+CC=/Developer/usr/bin/gcc-4.2 CXX=/Developer/usr/bin/g++-4.2 cmake -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES=x86_64 -DWITH_FFMPEG=OFF -DBUILD_SHARED_LIBS=NO -DCMAKE_INSTALL_PREFIX=. ..
+make -j8
+make install
+cd ..
+
+mkdir build32
+cd build32 
+rm CMakeCache.txt
+CC=/Developer/usr/bin/gcc-4.2 CXX=/Developer/usr/bin/g++-4.2 cmake -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES=i386 -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_SHARED_LINKER_FLAGS=-m32 -DCMAKE_CXX_COMPILER_ARG1=-m32 -DCMAKE_C_COMPILER_ARG1=-m32 -DWITH_FFMPEG=OFF -DBUILD_SHARED_LIBS=NO -DCMAKE_INSTALL_PREFIX=. ..
+make -j8
+make install
+cd ..

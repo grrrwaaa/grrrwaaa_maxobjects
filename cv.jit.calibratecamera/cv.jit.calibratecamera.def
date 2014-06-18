@@ -1,0 +1,4 @@
+LIBRARY cv.jit.calibratecamera.mxe
+
+EXPORTS
+	main
