@@ -2,11 +2,12 @@
 	<param name="T" type="vec3" default="0. 0. 0." />
 	<param name="R" type="mat3" default="1. 0. 0. 0. 1. 0. 0. 0. 1." />
 	<param name="rgb" type="int" default="0" />
-	<param name="rgb_map" type="int" default="1" />
+	<param name="color_map" type="int" default="1" />
 	<language name="glsl" version="1.0">
 		<bind param="T" program="vp" />
 		<bind param="R" program="vp" />
-
+		<bind param="color_map" program="vp" />
+		
 		<bind param="rgb" program="fp" />
 
 		<program name="vp" type="vertex">
@@ -16,7 +17,7 @@
 
 varying vec2 texcoord0;
 
-uniform sampler2D rgb_map;
+uniform sampler2D color_map;
 
 uniform vec3 T;
 uniform mat3 R;
@@ -37,7 +38,7 @@ void main() {
 	vec2 t = 0.5 + ndc*0.8;
 	
 	// now get warped texture coordinate from the map:
-	texcoord0 = texture2D(rgb_map, t).xy;
+	texcoord0 = texture2D(color_map, t).xy;
 	
 	// position pass through:
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; //ftransform();
@@ -57,7 +58,7 @@ uniform sampler2D rgb;
 
 // entry point
 void main() {      
-	gl_FragColor = texture2D(rgb, texcoord0)*2. + 0.2; 
+	gl_FragColor = texture2D(rgb, texcoord0); 
 }
 ]]>		
 		</program>

@@ -218,10 +218,17 @@ public:
 				
 				//post("%i %i: %i %f %f", x, y, i, v.x, v.y);
 			
-				// scale up to depth dim and store:
-				// TODO: should there be a +0.5 for rounding?
-				depth_map_data[i].x = (int)(v.x * DEPTH_WIDTH);
-				depth_map_data[i].y = (int)(v.y * DEPTH_HEIGHT);
+				// +0.5 for nice rounding -- TODO is this necessary?
+				int ix = (int)(v.x + 0.5);
+				int iy = (int)(v.y + 0.5);
+				
+				// clip at boundaries:
+				ix = ix < 0 ? 0 : ix >= DEPTH_WIDTH ? DEPTH_WIDTH-1 : ix;
+				iy = iy < 0 ? 0 : iy >= DEPTH_HEIGHT ? DEPTH_HEIGHT-1 : iy;
+				
+				// store:
+				depth_map_data[i].x = ix;
+				depth_map_data[i].y = iy;
 				
 				// move to next column:
 				ip += in_info.dimstride[0];

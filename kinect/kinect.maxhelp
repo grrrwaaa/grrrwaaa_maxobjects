@@ -8,7 +8,7 @@
 			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 265.0, 71.0, 1124.0, 678.0 ],
+		"rect" : [ 325.0, 104.0, 1124.0, 678.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 10.0,
@@ -28,6 +28,70 @@
 		"digest" : "",
 		"tags" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"frgb" : 0.0,
+					"id" : "obj-61",
+					"linecount" : 5,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 927.5, 575.5, 163.0, 67.0 ],
+					"presentation_rect" : [ 927.5, 578.5, 0.0, 0.0 ],
+					"text" : "When using multiple kinects, it is essential that each one is connected to a unique host controller bus. Most laptops only have one bus."
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"frgb" : 0.0,
+					"id" : "obj-59",
+					"linecount" : 2,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 927.5, 544.5, 163.0, 31.0 ],
+					"presentation_rect" : [ 807.0, 569.5, 0.0, 0.0 ],
+					"text" : "Note: it might not work over USB 3.0 ports on OSX."
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-54",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 420.0, 206.0, 141.0, 17.0 ],
+					"presentation_rect" : [ 420.0, 206.0, 0.0, 0.0 ],
+					"text" : "open A00363822555042A",
+					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-44",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 729.0, 64.0, 228.0, 17.0 ],
+					"presentation_rect" : [ 722.0, 63.0, 0.0, 0.0 ],
+					"text" : "import calibration-A00363822555042A.yml",
+					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
@@ -2661,7 +2725,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 729.0, 185.0, 246.0, 17.0 ],
-					"text" : "import calibration-B00366618096102B.yml",
+					"text" : "import calibration-A00363822555042A.yml",
 					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 				}
 
@@ -2675,7 +2739,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 729.0, 99.0, 230.0, 17.0 ],
+					"patching_rect" : [ 745.0, 90.5, 230.0, 17.0 ],
 					"text" : "import calibration-A00365910800132A.yml",
 					"textcolor" : [ 0.2, 0.2, 0.2, 1.0 ]
 				}
@@ -3437,6 +3501,15 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-10", 0 ],
+					"disabled" : 0,
+					"hidden" : 0,
+					"source" : [ "obj-44", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
 					"disabled" : 0,
 					"hidden" : 0,
@@ -3541,6 +3614,15 @@
 					"disabled" : 0,
 					"hidden" : 0,
 					"source" : [ "obj-53", 2 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-1", 0 ],
+					"disabled" : 0,
+					"hidden" : 0,
+					"source" : [ "obj-54", 0 ]
 				}
 
 			}
