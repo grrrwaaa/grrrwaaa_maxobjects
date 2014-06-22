@@ -145,6 +145,12 @@ int C74_EXPORT main(void) {
 	CLASS_ATTR_LONG(maxclass, "unique", 0, t_kinect, unique);
 	CLASS_ATTR_STYLE_LABEL(maxclass, "unique", 0, "onoff", "output frame only when new data is received");
 	
+	CLASS_ATTR_LONG(maxclass, "device_count", 0, t_kinect, device_count);
+	CLASS_ATTR_LONG(maxclass, "near_mode", 0, t_kinect, near_mode);
+	CLASS_ATTR_STYLE_LABEL(maxclass, "near_mode", 0, "onoff", "Windows only!");
+	CLASS_ATTR_LONG(maxclass, "player", 0, t_kinect, player);
+	CLASS_ATTR_STYLE_LABEL(maxclass, "player", 0, "onoff", "Windows only! Enable detection of player IDs");
+	
 	CLASS_ATTR_FLOAT_ARRAY(maxclass, "depth_focal", 0, t_kinect, depth_focal, 2);
 	CLASS_ATTR_FLOAT_ARRAY(maxclass, "depth_center", 0, t_kinect, depth_center, 2);
 	CLASS_ATTR_FLOAT(maxclass, "depth_base", 0, t_kinect, depth_base);
