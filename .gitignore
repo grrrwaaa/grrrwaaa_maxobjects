@@ -1,3 +1,6 @@
+[Tt]humbs.db
+*.DS_Store
+
 # Compiled Object files
 *.slo
 *.lo
@@ -13,8 +16,26 @@
 *.a
 
 build/
+ipch/
+[Oo]bj/
+[Bb]in
+[Dd]ebug*/
+[Rr]elease*/
+.svn
+
 *.perspectivev3
 *.pbxuser
 *.user
 *.sdf
 *.suo
+*.ncb
+*.sbr
+*.log
+*.pch
+*.vspscc
+*.bak
+*.vssscc
+*.sbr
+*.sdf
+*.opensdf
+*.unsuccessfulbuild
