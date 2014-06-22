@@ -98,7 +98,7 @@ public:
 		// create the internal data:
 		jit_matrix_info_default(&info);
 		info.flags |= JIT_MATRIX_DATA_PACK_TIGHT;
-		info.planecount = COLOR_PLANES;
+		info.planecount = 3;
 		info.type = gensym("char");
 		info.dimcount = 2;
 		info.dim[0] = DEPTH_WIDTH;
@@ -237,7 +237,6 @@ public:
 		}
 	}
 	
-<<<<<<< HEAD
 	void bang() {
 		if (unique) {
 			if (new_rgb_data) {

@@ -159,7 +159,7 @@ public:
 		cvIntrinsic = 0.;	// zero it
 		cvIntrinsic.at<double>(0,0) = image_size[1];	// fx
 		cvIntrinsic.at<double>(1,1) = image_size[1];	// fy
-		cvIntrinsic.at<double>(0,0) = image_size[0]/2.;	// cx
+		cvIntrinsic.at<double>(0,2) = image_size[0]/2.;	// cx
 		cvIntrinsic.at<double>(1,2) = image_size[1]/2.;	// cy
 		cvIntrinsic.at<double>(2,2) = 1;
 		

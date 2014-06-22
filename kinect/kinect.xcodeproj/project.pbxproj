@@ -8,9 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		36121959193AF51E0085C212 /* kinect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 36261B4B1939CA5800A9EA06 /* kinect.cpp */; };
-		361E0225194068F8006CC951 /* MaxKinectBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 361E0224194068F8006CC951 /* MaxKinectBase.h */; };
-		361E022B1940697D006CC951 /* MaxFreenect.h in Headers */ = {isa = PBXBuildFile; fileRef = 361E022A1940697D006CC951 /* MaxFreenect.h */; };
-		361E023319406A70006CC951 /* MaxK4W.h in Headers */ = {isa = PBXBuildFile; fileRef = 361E023219406A70006CC951 /* MaxK4W.h */; };
 		36261A031939A98300A9EA06 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36261A021939A98300A9EA06 /* Cocoa.framework */; };
 		36538878194220B5008BDC66 /* kinect_shader.jxs in Resources */ = {isa = PBXBuildFile; fileRef = 36538877194220AE008BDC66 /* kinect_shader.jxs */; };
 		36C85BC31936D4CB004516FF /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36C85BC21936D4CB004516FF /* IOKit.framework */; };
@@ -87,9 +84,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				361E0225194068F8006CC951 /* MaxKinectBase.h in Headers */,
-				361E022B1940697D006CC951 /* MaxFreenect.h in Headers */,
-				361E023319406A70006CC951 /* MaxK4W.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
