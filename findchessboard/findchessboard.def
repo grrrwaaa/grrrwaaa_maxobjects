@@ -1,0 +1,4 @@
+LIBRARY findchessboard.mxe
+
+EXPORTS
+	main

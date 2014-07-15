@@ -50,6 +50,7 @@ public:
 	int calibrate_tangent_distortion;
 	int merge_points;
 	int rodrigues;
+	int invert_extrinsics;
 	double reprojection_error;
 	double distortion[5];
 	double intrinsic[9];
@@ -74,6 +75,7 @@ public:
 		reprojection_error = 0.;
 		merge_points = 1;
 		rodrigues = 0;
+		invert_extrinsics = 0;
 		
 		// intrinsic options:
 		calibrate_aspect_ratio = 1;
@@ -221,9 +223,15 @@ public:
 		outlet_anything(outlet_msg, gensym("reprojection_error"), 1, a);
 		
 		cv::Mat& tvec = tvecs[tvecs.size()-1];
-		atom_setfloat(a  , tvec.at<double>(0));
-		atom_setfloat(a+1, tvec.at<double>(1));
-		atom_setfloat(a+2, tvec.at<double>(2));
+		if (invert_extrinsics) {
+			atom_setfloat(a  , -tvec.at<double>(0));
+			atom_setfloat(a+1, -tvec.at<double>(1));
+			atom_setfloat(a+2, -tvec.at<double>(2));
+		} else {
+			atom_setfloat(a  , tvec.at<double>(0));
+			atom_setfloat(a+1, tvec.at<double>(1));
+			atom_setfloat(a+2, tvec.at<double>(2));
+		}
 		outlet_list(outlet_tvec, 0, 3, a);
 		
 		cv::Mat& rvec = rvecs[rvecs.size()-1];
@@ -235,7 +243,14 @@ public:
 			outlet_list(outlet_rvec, 0, 3, a);
 		} else {
 			cv::Mat dst(3, 3, CV_64F, rotation);
-			cv::Rodrigues(rvec, dst);
+			
+			if (invert_extrinsics) {
+				cv::Mat tmp(3, 3, CV_64F);
+				cv::Rodrigues(rvec, tmp);
+				dst = tmp.inv();
+			} else {
+				cv::Rodrigues(rvec, dst);
+			}
 			atom_setdouble_array(9, a, 9, rotation);
 			outlet_list(outlet_rvec, 0, 9, a);
 		}
@@ -481,6 +496,8 @@ int C74_EXPORT main(void)
 	
 	CLASS_ATTR_LONG(c, "rodrigues", 0, t_calibratecamera, rodrigues);
 	CLASS_ATTR_STYLE(c, "rodrigues", 0, "onoff");
+	CLASS_ATTR_LONG(c, "invert_extrinsics", 0, t_calibratecamera, invert_extrinsics);
+	CLASS_ATTR_STYLE(c, "invert_extrinsics", 0, "onoff");
 	
 	
 	class_register(CLASS_BOX, c); /* CLASS_NOBOX */
